@@ -59,24 +59,7 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="16" x="0.5725" y="0.594758064516129" DPIAware="">
-    <PLUGIN name="FFTimpl" format="VST3" category="Fx" manufacturer="yourcompany"
-            version="1.0.0" file="C:\Users\Throw\Documents\MEGAsync\JuceProjects\FFTimpl\Builds\VisualStudio2017\x64\Debug\VST3\FFTimpl.vst3"
-            uid="e9596a53" isInstrument="0" fileTime="17395c5ac5d" infoUpdateTime="17395c704b0"
-            numInputs="2" numOutputs="2" isShell="0"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
-    <LAYOUT>
-      <INPUTS>
-        <BUS index="0" layout="L R"/>
-      </INPUTS>
-      <OUTPUTS>
-        <BUS index="0" layout="L R"/>
-      </OUTPUTS>
-    </LAYOUT>
-  </FILTER>
   <CONNECTION srcFilter="11" srcChannel="4096" dstFilter="15" dstChannel="4096"/>
-  <CONNECTION srcFilter="15" srcChannel="0" dstFilter="16" dstChannel="0"/>
-  <CONNECTION srcFilter="15" srcChannel="1" dstFilter="16" dstChannel="1"/>
-  <CONNECTION srcFilter="16" srcChannel="0" dstFilter="12" dstChannel="0"/>
-  <CONNECTION srcFilter="16" srcChannel="1" dstFilter="12" dstChannel="1"/>
+  <CONNECTION srcFilter="15" srcChannel="0" dstFilter="12" dstChannel="0"/>
+  <CONNECTION srcFilter="15" srcChannel="1" dstFilter="12" dstChannel="1"/>
 </FILTERGRAPH>
