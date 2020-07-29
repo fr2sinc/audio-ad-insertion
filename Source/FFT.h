@@ -50,7 +50,7 @@ public:
 		float max = 0.0f;
 		float absSample;
 
-		for (auto i = 0; i < (fftSize/2); i++) {
+		for (auto i = 0; i < (fftSize/2); ++i) {
 
 			absSample = std::abs(fftData[i]);
 			if (max < absSample) {
@@ -58,7 +58,10 @@ public:
 				index = i;
 			}
 		}
-		return float(index); //* m_sampleRate / forwardFFT.getSize(); Freq = (sampleRate * fftBufferIdx) / bufferSize
+		float outFreq = float(index) * m_sampleRate / forwardFFT.getSize(); // Freq = (sampleRate * fftBufferIdx) / bufferSize
+		DBG(outFreq);
+
+		return outFreq;
 
 		/*
 		For example, assume you are looking at index number 256 and you are running at a sample rate of 44100 Hz.
@@ -68,8 +71,17 @@ public:
 		*/
 	}
 
+	bool checkTone() {
+		//range: 421.74 - 445.17
+		float freqFound = getFundamentalFrequency();
+		if (freqFound >= 421.74f && freqFound <= 446.17f)
+			return true;
+		else
+			return false;
+	}
+
 	enum {
-		fftOrder = 12,            
+		fftOrder = 11,            
 		fftSize = 1 << fftOrder
 	};
 
@@ -81,7 +93,7 @@ private:
 	int fifoIndex = 0;   
 
 	float m_sampleRate = 48000.0;
-
+	//48000 / 2048 = bins da 23.43 HZ
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FFT)
 };
