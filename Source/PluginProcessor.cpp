@@ -154,13 +154,11 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		//--------------------------------
 		//calculate FFT only in one channel, if i need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
 		if (channel == 0) {
-			//DBG(fft.getFundamentalFrequency());
-			//DBG(mSampleRate);
-			//float a = fft.getFundamentalFrequency();
-			//osc.setFreq(fft.getFundamentalFrequency());
+			//DBG(fft.getPeakFrequency());
+			//osc.setFreq(fft.getPeakFrequency());
 			
 
-			if (fft.checkTone() && timeCounter > 150) {
+			if (fft.checkDetectDTMF() && timeCounter > 150) {
 				if (!toneOn) {
 					toneOn = true;
 					timeCounter = 0;
@@ -186,8 +184,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
 				channelData[sample] = channelData[sample] * Decibels::decibelsToGain(-60.0f);
 			}
-		//--------------------------------
-		
+		//--------------------------------	
 		
 
 		const float* bufferData = buffer.getReadPointer(channel);
@@ -199,18 +196,6 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	}
 	mWritePosition += bufferLength;
 	mWritePosition %= delayBufferLength;
-
-	/*auto chInv = 1.0f / float(buffer.getNumChannels());
-	DBG(fft.getFundamentalFrequency());
-	for (auto s = 0; s < buffer.getNumSamples(); ++s) {
-		auto sample = 0.f;
-		for (auto ch = 0; ch < buffer.getNumChannels(); ++ch) {
-			auto * channelData = buffer.getReadPointer(ch, s);
-			sample += *channelData;
-		}
-		sample *= chInv;
-		fft.pushSampleIntoFifo(sample);
-	}*/
 	timeCounter++;
 }
 

@@ -9,11 +9,15 @@
 */
 
 #pragma once
+#define _USE_MATH_DEFINES
 #include <JuceHeader.h>
+#include <math.h>
 
 //==============================================================================
 /*
 */
+
+
 class FFT  
 {
 public:
@@ -32,8 +36,12 @@ public:
 			juce::zeromem(fftData.data(), sizeof(fftData));
 			memcpy(fftData.data(), fifo.data(), sizeof(fifo));
 
+			juce::zeromem(dtmf_levels, sizeof(dtmf_levels));
+			
+
 			window.multiplyWithWindowingTable(fftData.data(), fftSize);
-			forwardFFT.performFrequencyOnlyForwardTransform(fftData.data());
+			//forwardFFT.performFrequencyOnlyForwardTransform(fftData.data()); //FFT computation
+			detectDTMF(fftSize, fftData.data());
 			fifoIndex = 0;
 		}
 
@@ -45,7 +53,7 @@ public:
 		m_sampleRate = float(sampleRate);		
 	}
 
-	const float& getFundamentalFrequency() {
+	const float& getPeakFrequency() {
 		float index = 0.0f;
 		float max = 0.0f;
 		float absSample;
@@ -73,17 +81,59 @@ public:
 
 	bool checkTone() {
 		//range: 421.74 - 445.17
-		float freqFound = getFundamentalFrequency();
+		float freqFound = getPeakFrequency();
 		if (freqFound >= 421.74f && freqFound <= 446.17f)
 			return true;
 		else
 			return false;
 	}
 
+
+
+	float goertzel(int size, const float *data, int sample_fq, int detect_fq)
+	{
+		float omega = static_cast<float> (PI2 * detect_fq / sample_fq);
+		float sine = sin(omega);
+		float cosine = cos(omega);
+		float coeff = cosine * 2;
+		float q0 = 0;
+		float q1 = 0;
+		float q2 = 0;
+
+		for (int i = 0; i < size; i++) {
+			q0 = coeff * q1 - q2 + data[i];
+			q2 = q1;
+			q1 = q0;
+		}
+
+		float real = (q1 - q2 * cosine) / (size / 2.0);
+		float imag = (q2 * sine) / (size / 2.0);
+
+		float out = sqrt(real * real + imag * imag);
+		return out * 1000;
+	}
+
+	void detectDTMF(int size, float const *data)
+	{
+		for (int i = 0; i < 8; i++) {
+			dtmf_levels[i] = goertzel(size, data, m_sampleRate, dtmf_fq[i]);
+		}
+	}
+	bool checkDetectDTMF() {
+		for (int i = 0; i < 8; i++) {
+			DBG(dtmf_levels[0]);
+			if (dtmf_levels[i] > 90.0f)
+				return true;
+			else
+				return false;
+		}
+	}
+
 	enum {
 		fftOrder = 11,            
 		fftSize = 1 << fftOrder
 	};
+	
 
 private:
 	juce::dsp::FFT forwardFFT;                      
@@ -94,6 +144,10 @@ private:
 
 	float m_sampleRate = 48000.0;
 	//48000 / 2048 = bins da 23.43 HZ
+
+	const float  PI2 = M_PI * 2;
+	const int dtmf_fq[8] = { 697, 770, 852, 941, 1209, 1336, 1477, 1633 };
+	float dtmf_levels[8] = {};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FFT)
 };
