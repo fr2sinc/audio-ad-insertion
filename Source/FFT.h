@@ -115,23 +115,25 @@ public:
 
 	void detectDTMF(int size, float const *data)
 	{
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < dtmfsSize; i++) {
 			dtmf_levels[i] = goertzel(size, data, m_sampleRate, dtmf_fq[i]);
 		}
 	}
 	bool checkDetectDTMF() {
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < dtmfsSize; i++) {
+
 			DBG(dtmf_levels[0]);
-			if (dtmf_levels[i] > 90.0f)
+
+			if (dtmf_levels[i] > 90.0)
 				return true;
-			else
-				return false;
 		}
+		return false;
 	}
 
 	enum {
 		fftOrder = 11,            
-		fftSize = 1 << fftOrder
+		fftSize = 1 << fftOrder,
+		dtmfsSize = 8
 	};
 	
 
@@ -146,8 +148,8 @@ private:
 	//48000 / 2048 = bins da 23.43 HZ
 
 	const float  PI2 = M_PI * 2;
-	const int dtmf_fq[8] = { 697, 770, 852, 941, 1209, 1336, 1477, 1633 };
-	float dtmf_levels[8] = {};
+	const int dtmf_fq[dtmfsSize] = { 697, 770, 852, 941, 1209, 1336, 1477, 1633 };
+	float dtmf_levels[dtmfsSize] = {};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FFT)
 };

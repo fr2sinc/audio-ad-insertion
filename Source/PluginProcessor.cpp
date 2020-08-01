@@ -22,6 +22,7 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 	)
 #endif
 {
+	formatManager.registerBasicFormats();       // [1]
 }
 
 FFTimplAudioProcessor::~FFTimplAudioProcessor()
@@ -104,6 +105,7 @@ void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 	mDelayBuffer.setSize(numInputChannels, delayBufferSize);
 
 	fft.setSampleRate(sampleRate);
+	transportSource.prepareToPlay(samplesPerBlock, sampleRate);
 }
 
 void FFTimplAudioProcessor::releaseResources()
@@ -149,24 +151,61 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	const int bufferLength = buffer.getNumSamples();
 	const int delayBufferLength = mDelayBuffer.getNumSamples();
 
+
+	/*if (toneOn) {
+
+		audioInjection = true;
+
+		//changeState(Starting);
+		if (state != Starting) {
+
+			auto file = File("C:\\Users\\Throw\\Music\\Changes\\Changes CD 1 TRACK 1 (320).mp3");
+			auto* reader = formatManager.createReaderFor(file);                    // [10]
+
+			if (reader != nullptr)
+			{
+				std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true)); // [11]
+				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);                                 // [12]
+
+				readerSource.reset(newSource.release());                                                                    // [14]
+			}
+
+			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+
+			changeState(Starting);
+		}
+
+	}*/
+
 	for (int channel = 0; channel < totalNumInputChannels; ++channel) {
 
 		//--------------------------------
-		//calculate FFT only in one channel, if i need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
+		//calculate FFT only in one channel, if I need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
 		if (channel == 0) {
 			//DBG(fft.getPeakFrequency());
 			//osc.setFreq(fft.getPeakFrequency());
 			
 
-			if (fft.checkDetectDTMF() && timeCounter > 150) {
+			/*if (fft.checkDetectDTMF() && timeCounter > 150) {
 				if (!toneOn) {
 					toneOn = true;
+					newTonoState = On;
 					timeCounter = 0;
 				}
 				else {
 					toneOn = false;
+					newTonoState = Off;
 					timeCounter = 0;
 				}
+			}*/
+			bool fftResult = fft.checkDetectDTMF();
+			if (fftResult && timeCounter > 150) {
+				newTonoState = On;
+				
+			}
+			else {
+				newTonoState = Off;
+				
 			}
 
 			auto* channelData = buffer.getReadPointer(channel);
@@ -178,12 +217,18 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			}
 		}
 
+		
+		/*
 		//on / off sound
 		auto* channelData = buffer.getWritePointer(channel);
+
 		if (toneOn)//shutDown sound
 			for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
 				channelData[sample] = channelData[sample] * Decibels::decibelsToGain(-60.0f);
 			}
+		*/
+
+
 		//--------------------------------	
 		
 
@@ -194,9 +239,69 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		getFromDelayBuffer(buffer, channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
 
 	}
+
+	//----------------------------------
+	if (tonoState == On) {
+		if (newTonoState == On) {
+			tonoState = Off;
+			timeCounter = 0;
+		}
+	}
+	else if (tonoState = Off) {
+		if (newTonoState == On) {
+			tonoState = On;
+
+			auto file = File("C:\\Users\\Throw\\Music\\Changes\\Changes CD 1 TRACK 1 (320).mp3");
+			auto* reader = formatManager.createReaderFor(file);
+
+			if (reader != nullptr) {
+
+				std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
+				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+				readerSource.reset(newSource.release());
+			}
+			//transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+			transportSource.start();
+			timeCounter = 0;
+		}
+	}
+	//----------------------------------
+
+
+	if (tonoState == On) {
+		transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+		//changeState(Starting);
+	}
+
 	mWritePosition += bufferLength;
 	mWritePosition %= delayBufferLength;
 	timeCounter++;
+}
+
+void FFTimplAudioProcessor::changeState (TransportState newState)
+{
+	if (state != newState)
+	{
+		state = newState;
+
+		switch (state)
+		{
+		case Stopped:                           // [3]
+			transportSource.setPosition(0.0);
+			break;
+
+		case Starting:                          // [4]
+			transportSource.start();			
+			break;
+
+		case Playing:                           // [5]
+			break;
+
+		case Stopping:                          // [6]
+			transportSource.stop();
+			break;
+		}
+	}
 }
 
 void FFTimplAudioProcessor::fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,

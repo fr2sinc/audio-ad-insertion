@@ -17,6 +17,19 @@
 class FFTimplAudioProcessor : public juce::AudioProcessor
 {
 public:
+	enum TransportState
+	{
+		Stopped,
+		Starting,
+		Playing,
+		Stopping
+	};
+	enum TonoState
+	{
+		On,
+		Off
+	};
+
 	//==============================================================================
 	FFTimplAudioProcessor();
 	~FFTimplAudioProcessor() override;
@@ -30,6 +43,8 @@ public:
 #endif
 
 	void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+	void changeState(TransportState newState);
 
 	//==============================================================================
 	juce::AudioProcessorEditor* createEditor() override;
@@ -66,9 +81,19 @@ public:
 private:
 	AudioBuffer<float> mDelayBuffer;
 	int mWritePosition{ 0 };
-	int mSampleRate{ 44100 };
+	int mSampleRate{ 48000 };
 	bool toneOn = false;
+	bool audioInjection = false;
 	int timeCounter = 0;
+
+	//needed for reading audio files from a new source
+	juce::AudioFormatManager formatManager;
+	std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
+	juce::AudioTransportSource transportSource;
+	TransportState state = Stopped;
+	TonoState tonoState = Off;
+	TonoState newTonoState = Off;
+
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
 };

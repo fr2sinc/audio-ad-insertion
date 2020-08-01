@@ -9,3 +9,5 @@ https://it.mathworks.com/help/signal/examples/dft-estimation-with-the-goertzel-a
 https://www.musicdsp.org/en/latest/Analysis/107-tone-detection-with-goertzel.html
 
 https://github.com/soramimi/QtDTMF
+
+https://stackoverflow.com/questions/11579367/implementation-of-goertzel-algorithm-in-c
