@@ -151,111 +151,69 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	const int bufferLength = buffer.getNumSamples();
 	const int delayBufferLength = mDelayBuffer.getNumSamples();
 
-
-	/*if (toneOn) {
-
-		audioInjection = true;
-
-		//changeState(Starting);
-		if (state != Starting) {
-
-			auto file = File("C:\\Users\\Throw\\Music\\Changes\\Changes CD 1 TRACK 1 (320).mp3");
-			auto* reader = formatManager.createReaderFor(file);                    // [10]
-
-			if (reader != nullptr)
-			{
-				std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true)); // [11]
-				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);                                 // [12]
-
-				readerSource.reset(newSource.release());                                                                    // [14]
-			}
-
-			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
-
-			changeState(Starting);
-		}
-
-	}*/
+	changeToneState();
 
 	for (int channel = 0; channel < totalNumInputChannels; ++channel) {
 
-		//--------------------------------
-		//calculate FFT only in one channel, if I need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
-		if (channel == 0) {
-			//DBG(fft.getPeakFrequency());
-			//osc.setFreq(fft.getPeakFrequency());
-			
-
-			/*if (fft.checkDetectDTMF() && timeCounter > 150) {
-				if (!toneOn) {
-					toneOn = true;
-					newTonoState = On;
-					timeCounter = 0;
-				}
-				else {
-					toneOn = false;
-					newTonoState = Off;
-					timeCounter = 0;
-				}
-			}*/
-			bool fftResult = fft.checkDetectDTMF();
-			if (fftResult && timeCounter > 150) {
-				newTonoState = On;
-				
-			}
-			else {
-				newTonoState = Off;
-				
-			}
-
-			auto* channelData = buffer.getReadPointer(channel);
-
-			for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
-				fft.pushSampleIntoFifo(channelData[sample]);
-				//osc.process(channelData[sample]);
-				//channelData[sample] = osc.getWave(osc.WFSqr);
-			}
-		}
-
-		
-		/*
-		//on / off sound
-		auto* channelData = buffer.getWritePointer(channel);
-
-		if (toneOn)//shutDown sound
-			for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
-				channelData[sample] = channelData[sample] * Decibels::decibelsToGain(-60.0f);
-			}
-		*/
-
-
-		//--------------------------------	
-		
-
 		const float* bufferData = buffer.getReadPointer(channel);
 		const float* delayBufferData = mDelayBuffer.getReadPointer(channel);
+		
+		doToneAnalysis(channel, bufferLength, bufferData);
 
+		//audio injection from audioFile into main Buffer, one time for all channels
+		//but in this way I'm not taking advantage of the delay
+		if (toneState == On && channel == 0) {
+			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+		}		
+
+		//delay actions
 		fillDelayBuffer(channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
 		getFromDelayBuffer(buffer, channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
+	}	
+
+	mWritePosition += bufferLength;
+	mWritePosition %= delayBufferLength;
+	timeCounter++;
+}
+
+void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	const float* bufferData) {
+
+	//calculate FFT only in one channel, if I need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
+	if (channel == 0) {
+
+		bool fftResult = fft.checkDetectDTMF();
+
+		if (fftResult && timeCounter > 150) {
+			newToneState = On;
+		}
+		else {
+			newToneState = Off;
+		}		
+
+		//fill fifo buffer to perform after frequency analysis
+		for (int sample = 0; sample < bufferLength; ++sample) {
+			fft.pushSampleIntoFifo(bufferData[sample]);			
+		}
 
 	}
+}
 
-	//----------------------------------
-	if (tonoState == On) {
-		if (newTonoState == On) {
-			tonoState = Off;
+void FFTimplAudioProcessor::changeToneState() {
+
+	if (toneState == On) {
+		if (newToneState == On) {
+			toneState = Off;
 			timeCounter = 0;
 		}
 	}
-	else if (tonoState = Off) {
-		if (newTonoState == On) {
-			tonoState = On;
+	else if (toneState = Off) {
+		if (newToneState == On) {
+			toneState = On;
 
 			auto file = File("C:\\Users\\Throw\\Music\\Changes\\Changes CD 1 TRACK 1 (320).mp3");
 			auto* reader = formatManager.createReaderFor(file);
 
 			if (reader != nullptr) {
-
 				std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
 				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
 				readerSource.reset(newSource.release());
@@ -265,17 +223,6 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			timeCounter = 0;
 		}
 	}
-	//----------------------------------
-
-
-	if (tonoState == On) {
-		transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
-		//changeState(Starting);
-	}
-
-	mWritePosition += bufferLength;
-	mWritePosition %= delayBufferLength;
-	timeCounter++;
 }
 
 void FFTimplAudioProcessor::changeState (TransportState newState)

@@ -36,8 +36,7 @@ public:
 			juce::zeromem(fftData.data(), sizeof(fftData));
 			memcpy(fftData.data(), fifo.data(), sizeof(fifo));
 
-			juce::zeromem(dtmf_levels, sizeof(dtmf_levels));
-			
+			juce::zeromem(dtmf_levels, sizeof(dtmf_levels));			
 
 			window.multiplyWithWindowingTable(fftData.data(), fftSize);
 			//forwardFFT.performFrequencyOnlyForwardTransform(fftData.data()); //FFT computation

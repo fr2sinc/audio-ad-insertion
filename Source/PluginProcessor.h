@@ -24,7 +24,7 @@ public:
 		Playing,
 		Stopping
 	};
-	enum TonoState
+	enum ToneState
 	{
 		On,
 		Off
@@ -44,7 +44,17 @@ public:
 
 	void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
+	void doToneAnalysis(int channel, const int bufferLength, const float* bufferData);
+
+	void changeToneState();
+
 	void changeState(TransportState newState);
+
+	void fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,
+		const float* bufferData, const float* delayBufferData);
+
+	void getFromDelayBuffer(AudioBuffer<float>& buffer, int channel, const int bufferLength,
+		const int delayBufferLength, const float* bufferData, const float* delayBufferData);
 
 	//==============================================================================
 	juce::AudioProcessorEditor* createEditor() override;
@@ -68,12 +78,7 @@ public:
 	//==============================================================================
 	void getStateInformation(juce::MemoryBlock& destData) override;
 	void setStateInformation(const void* data, int sizeInBytes) override;
-
-	void fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,
-		const float* bufferData, const float* delayBufferData);
-	void getFromDelayBuffer(AudioBuffer<float>& buffer, int channel, const int bufferLength,
-		const int delayBufferLength, const float* bufferData, const float* delayBufferData);
-
+	
 	float mDelay{ 0.0 };
 
 	FFT fft;
@@ -91,8 +96,8 @@ private:
 	std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 	juce::AudioTransportSource transportSource;
 	TransportState state = Stopped;
-	TonoState tonoState = Off;
-	TonoState newTonoState = Off;
+	ToneState toneState = Off;
+	ToneState newToneState = Off;
 
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
