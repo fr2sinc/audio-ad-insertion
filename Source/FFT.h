@@ -119,13 +119,24 @@ public:
 		}
 	}
 	bool checkDetectDTMF() {
-		for (int i = 0; i < dtmfsSize; i++) {
 
-			DBG(dtmf_levels[0]);
+		bool firstTone = false;
+		bool secondTone = false;
 
-			if (dtmf_levels[i] > 90.0)
-				return true;
+		//to find the contemporary presence of two tones
+		for (int i = 0; i < dtmfsSize/2; i++) {
+			DBG(dtmf_levels[i]);
+			if (dtmf_levels[i] > 170.0)//threshold of activation
+				firstTone = true;
 		}
+		for (int i = dtmfsSize / 2; i < dtmfsSize ; i++) {
+			DBG(dtmf_levels[i]);
+			if (dtmf_levels[i] > 170.0)
+				secondTone = true;
+		}
+		if (firstTone && secondTone)
+			return true;
+		
 		return false;
 	}
 
