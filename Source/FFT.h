@@ -123,27 +123,27 @@ public:
 		bool firstTone = false;
 		bool secondTone = false;
 
-		//to find the contemporary presence of two tones
+		//to find the simultaneous presence of two frequencies in one tone
 		for (int i = 0; i < dtmfsSize/2; i++) {
 			DBG(dtmf_levels[i]);
-			if (dtmf_levels[i] > 170.0)//threshold of activation
+			if (dtmf_levels[i] > 350.0)//threshold of activation
 				firstTone = true;
 		}
 		for (int i = dtmfsSize / 2; i < dtmfsSize ; i++) {
 			DBG(dtmf_levels[i]);
-			if (dtmf_levels[i] > 170.0)
+			if (dtmf_levels[i] > 350.0)
 				secondTone = true;
 		}
-		if (firstTone && secondTone)
+		if (firstTone)
 			return true;
 		
 		return false;
 	}
 
 	enum {
-		fftOrder = 11,            
+		fftOrder = 12,            
 		fftSize = 1 << fftOrder,
-		dtmfsSize = 8
+		dtmfsSize = 9
 	};
 	
 
@@ -155,13 +155,14 @@ private:
 	int fifoIndex = 0;   
 
 	float m_sampleRate = 48000.0;
-	//48000 / 2048 = bins da 23.43 HZ
+	//48000 / 2048 (2^11) = bins da 23.43 HZ
+	//48000 / 4096 (2^12) = bins da 11.71 HZ
+	//quindi goertzel settato sul riconoscimento di 16HZ, riconoscerà nell'intorno di +/- 5.85
 
 	const float  PI2 = M_PI * 2;
-	const int dtmf_fq[dtmfsSize] = { 697, 770, 852, 941, 1209, 1336, 1477, 1633 };
+	const int dtmf_fq[dtmfsSize] = {16, 697, 770, 852, 941, 1209, 1336, 1477, 1633 };
 	float dtmf_levels[dtmfsSize] = {};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FFT)
 };
-
 

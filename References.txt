@@ -11,3 +11,16 @@ https://www.musicdsp.org/en/latest/Analysis/107-tone-detection-with-goertzel.htm
 https://github.com/soramimi/QtDTMF
 
 https://stackoverflow.com/questions/11579367/implementation-of-goertzel-algorithm-in-c
+
+https://www.adblockradio.com/blog/2018/11/15/designing-audio-ad-block-radio-podcast/index.html
+
+//implementazione in JS di Ellis (Shazam principles)
+https://github.com/adblockradio/stream-audio-fingerprint
+
+//Dejavu Python implementation
+https://github.com/worldveil/dejavu
+
+//Come funziona
+https://willdrevo.com/fingerprinting-and-audio-recognition-with-python/
+
+//how to setup OpenCv with visual Studio 2017
