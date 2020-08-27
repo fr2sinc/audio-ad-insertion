@@ -5,6 +5,7 @@
               pluginFormats="buildVST,buildVST3" cppLanguageStandard="17">
   <MAINGROUP id="nYp2Da" name="FFTimpl">
     <GROUP id="{D6378D04-1F02-8C68-C18F-2CABCE16A8E1}" name="Source">
+      <FILE id="hAovAI" name="DataPoint.h" compile="0" resource="0" file="Source/DataPoint.h"/>
       <FILE id="Gi6rMp" name="FFT.h" compile="0" resource="0" file="Source/FFT.h"/>
       <FILE id="CRRFD4" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

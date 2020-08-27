@@ -99,6 +99,7 @@ private:
 	ToneState toneState = Off;
 	ToneState newToneState = Off;
 
+
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
 };

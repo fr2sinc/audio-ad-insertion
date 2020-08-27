@@ -24,3 +24,8 @@ https://github.com/worldveil/dejavu
 https://willdrevo.com/fingerprinting-and-audio-recognition-with-python/
 
 //how to setup OpenCv with visual Studio 2017
+
+//Implementazione in Java
+https://www.royvanrijn.com/blog/2010/06/creating-shazam-in-java/
+//codice funzionante
+https://github.com/wsieroci/audio-recognizer

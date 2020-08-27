@@ -23,6 +23,19 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 #endif
 {
 	formatManager.registerBasicFormats();       // [1]
+
+	/*---------------------------------------------------------*/
+	DirectoryIterator dir_iterator(File("C:\\Users\\Throw\\Downloads\\shazam-master\\cmake-build-debug\\data"), false);
+	//iterate until all
+	int songId = 0;
+	while (dir_iterator.next()) {
+
+		auto file = File(dir_iterator.getFile());
+
+		fft.generateHashes(songId, false, file.getFullPathName());
+		songId++;
+	}
+	/*---------------------------------------------------------*/
 }
 
 FFTimplAudioProcessor::~FFTimplAudioProcessor()
@@ -106,6 +119,11 @@ void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 
 	fft.setSampleRate(sampleRate);
 	transportSource.prepareToPlay(samplesPerBlock, sampleRate);
+
+	
+
+	fft.setSongMatchBuffer();
+
 }
 
 void FFTimplAudioProcessor::releaseResources()
@@ -163,7 +181,24 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		//audio injection from audioFile into main Buffer, one time for all channels
 		//but in this way I'm not taking advantage of the delay
 		if (toneState == On && channel == 0) {
+
+			/*-----------------------------------------*/
+			//fill fifo buffer to perform after fingerprint match
+			AudioBuffer<float> tmpBuffer;
+			tmpBuffer.setSize(1, bufferLength);			
+			
+
+			
+			/*-----------------------------------------*/
+			//TODO
+			//gestisci il fatto che dopo aver riempito il buffer ed aver fatto il codice per matchare il fingerprint
+			//lui continua a rimpire il buffer fino a quando l'interruttore va ad OFF
+			
 			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+
+
+			tmpBuffer.copyFrom(0, 0, bufferData, bufferLength);
+			fft.pushSampleIntoSongMatchFifo(tmpBuffer, bufferLength);
 		}		
 
 		//delay actions
@@ -210,7 +245,7 @@ void FFTimplAudioProcessor::changeToneState() {
 		if (newToneState == On) {
 			toneState = On;
 
-			auto file = File("C:\\Users\\Throw\\Music\\Changes\\Changes CD 1 TRACK 1 (320).mp3");
+			auto file = File("C:\\Users\\Throw\\Music\\23 6451\\23 6451 CD 1 TRACK 1 (320).mp3");
 			auto* reader = formatManager.createReaderFor(file);
 
 			if (reader != nullptr) {
