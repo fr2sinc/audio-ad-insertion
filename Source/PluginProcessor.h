@@ -17,13 +17,6 @@
 class FFTimplAudioProcessor : public juce::AudioProcessor
 {
 public:
-	enum TransportState
-	{
-		Stopped,
-		Starting,
-		Playing,
-		Stopping
-	};
 	enum ToneState
 	{
 		On,
@@ -47,8 +40,6 @@ public:
 	void doToneAnalysis(int channel, const int bufferLength, const float* bufferData);
 
 	void changeToneState();
-
-	void changeState(TransportState newState);
 
 	void fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,
 		const float* bufferData, const float* delayBufferData);
@@ -95,7 +86,6 @@ private:
 	juce::AudioFormatManager formatManager;
 	std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 	juce::AudioTransportSource transportSource;
-	TransportState state = Stopped;
 	ToneState toneState = Off;
 	ToneState newToneState = Off;
 

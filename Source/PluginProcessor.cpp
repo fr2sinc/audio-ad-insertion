@@ -25,8 +25,9 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 	formatManager.registerBasicFormats();       // [1]
 
 	/*---------------------------------------------------------*/
-	DirectoryIterator dir_iterator(File("C:\\Users\\Throw\\Downloads\\shazam-master\\cmake-build-debug\\data"), false);
-	//iterate until all
+	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");		
+	DirectoryIterator dir_iterator(f, false);
+	
 	int songId = 0;
 	while (dir_iterator.next()) {
 
@@ -108,7 +109,6 @@ void FFTimplAudioProcessor::changeProgramName(int index, const juce::String& new
 void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
 	// Use this method as the place to do any pre-playback
-
 	const int numInputChannels = getTotalNumInputChannels();
 	//set the mSampleRate variable to be used in all functions
 	mSampleRate = sampleRate;
@@ -118,18 +118,16 @@ void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 	mDelayBuffer.setSize(numInputChannels, delayBufferSize);
 
 	fft.setSampleRate(sampleRate);
-	transportSource.prepareToPlay(samplesPerBlock, sampleRate);
-
-	
+	transportSource.prepareToPlay(samplesPerBlock, sampleRate);	
 
 	fft.setSongMatchBuffer();
-
 }
 
 void FFTimplAudioProcessor::releaseResources()
 {
 	// When playback stops, you can use this as an opportunity to free up any
 	// spare memory, etc.
+	transportSource.releaseResources();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -185,17 +183,13 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			/*-----------------------------------------*/
 			//fill fifo buffer to perform after fingerprint match
 			AudioBuffer<float> tmpBuffer;
-			tmpBuffer.setSize(1, bufferLength);			
-			
-
-			
+			tmpBuffer.setSize(1, bufferLength);
 			/*-----------------------------------------*/
 			//TODO
 			//gestisci il fatto che dopo aver riempito il buffer ed aver fatto il codice per matchare il fingerprint
 			//lui continua a rimpire il buffer fino a quando l'interruttore va ad OFF
 			
 			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
-
 
 			tmpBuffer.copyFrom(0, 0, bufferData, bufferLength);
 			fft.pushSampleIntoSongMatchFifo(tmpBuffer, bufferLength);
@@ -245,43 +239,16 @@ void FFTimplAudioProcessor::changeToneState() {
 		if (newToneState == On) {
 			toneState = On;
 
-			auto file = File("C:\\Users\\Throw\\Music\\23 6451\\23 6451 CD 1 TRACK 1 (320).mp3");
+			File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
 			auto* reader = formatManager.createReaderFor(file);
 
 			if (reader != nullptr) {
 				std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
 				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
 				readerSource.reset(newSource.release());
-			}
-			//transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+			}			
 			transportSource.start();
 			timeCounter = 0;
-		}
-	}
-}
-
-void FFTimplAudioProcessor::changeState (TransportState newState)
-{
-	if (state != newState)
-	{
-		state = newState;
-
-		switch (state)
-		{
-		case Stopped:                           // [3]
-			transportSource.setPosition(0.0);
-			break;
-
-		case Starting:                          // [4]
-			transportSource.start();			
-			break;
-
-		case Playing:                           // [5]
-			break;
-
-		case Stopping:                          // [6]
-			transportSource.stop();
-			break;
 		}
 	}
 }

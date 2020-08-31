@@ -312,3 +312,256 @@ if (toneOn) {
 		}
 
 	}
+
+
+	void generateLandmark(int songId, bool isMatching, juce::String input_file = "") {
+
+		const int NFFT = fftSize;
+		// frequency window to generate landmark pairs, in units of DF = SAMPLING_RATE / NFFT. Values between 0 and NFFT/2
+		const int IF_MIN = 0; // you can increase this to avoid having fingerprints for low frequencies
+		const int IF_MAX = NFFT / 2; // you don't really want to decrease this, better reduce SAMPLING_RATE instead for faster computation.
+		std::array<float, NFFT / 2> threshold;
+
+		const int MNLM = 5;
+		// maximum number of local maxima for each spectrum. useful to tune the amount of fingerprints at output
+
+		// prepare the values of exponential masks.
+		const int MASK_DF = 3; // mask decay scale in DF units on the frequency axis.	
+
+		float EWW[NFFT / 2][NFFT / 2];
+		for (int i = 0; i < NFFT / 2; i++) {
+			for (int j = 0; j < NFFT / 2; j++) {
+				EWW[i][j] = -0.5* pow((j - i) / MASK_DF / sqrt(i + 3), 2); // gaussian mask is a polynom when working on the log-spectrum. log(exp()) = Id()
+				// MASK_DF is multiplied by Math.sqrt(i+3) to have wider masks at higher frequencies
+				// see the visualization out-thr.png for better insight of what is happening
+			}
+		}
+
+		struct Triplet
+		{
+			double t;
+			std::vector<double> i, v;
+		};
+		std::vector<Triplet> marks;
+		const int PRUNING_DT = 24;
+		const double MASK_DECAY_LOG = log(0.995); // threshold decay factor between frames.
+		const int WINDOW_DT = 96; // a little more than 1 sec.
+		const int WINDOW_DF = 60; // we set this to avoid getting fingerprints linking very different frequencies.
+
+		std::vector<double> tcodes;
+		std::vector<double> hcodes;
+
+		const int MPPP = 3;
+
+
+		File file(input_file);
+		AudioFormatManager formatManager;
+		formatManager.registerBasicFormats();
+
+		juce::AudioBuffer<float> fileBuffer;
+		int samples;
+		if (!isMatching) {
+
+			std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file)); // [2]			
+
+			if (reader.get() != nullptr) {
+				auto duration = (float)reader->lengthInSamples / reader->sampleRate;               // [3]
+
+				fileBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);  // [4]
+				reader->read(&fileBuffer,                                                      // [5]
+					0,                                                                //  [5.1]
+					(int)reader->lengthInSamples,                                    //  [5.2]
+					0,                                                                //  [5.3]
+					true,                                                             //  [5.4]
+					true);                                                            //  [5.5]
+																				  // [6]
+			}
+			//samples = fileBuffer.getNumSamples();
+			samples = (int)m_sampleRate * 15;
+		}
+		else {
+			fileBuffer = songMatchFifo;
+			samples = (int)m_sampleRate * 15;
+		}
+
+		
+
+		
+		std::array<float, 2 * fftSize> outBuffer;	
+		int mread = 0;
+		int freqbandWidth = 40;	
+
+
+		for (int t = 0; t < samples / (fftSize / 2); t++) {
+
+			memcpy(outBuffer.data(), fileBuffer.getReadPointer(0, mread), fftSize * sizeof(float));
+			mread += fftSize / 2;
+
+			window.multiplyWithWindowingTable(outBuffer.data(), fftSize);
+			forwardFFT.performFrequencyOnlyForwardTransform(outBuffer.data()); //FFT computation
+
+			// log-normal surface
+			for (int i = IF_MIN; i < IF_MAX; i++) {
+				// the lower part of the spectrum is damped, the higher part is boosted, leading to a better peaks detection.
+				outBuffer[i] = abs(outBuffer[i])* sqrt(i + 16);
+			}
+
+			// positive values of the difference between log spectrum and threshold				
+			std::array<double, NFFT / 2> diff;
+			for (int i = IF_MIN; i < IF_MAX; i++) {
+				diff[i] = std::max(log(std::max(1e-6, (double)outBuffer[i])) - threshold[i], 0.0);
+			}
+
+			// find at most MNLM local maxima in the spectrum at this timestamp.
+			std::vector<double> iLocMax(MNLM);
+			std::vector<double> vLocMax(MNLM);
+
+			for (int i = 0; i < MNLM; i++) {
+				iLocMax[i] = NAN;
+				vLocMax[i] = std::numeric_limits<double>::lowest();
+			}
+			for (int i = IF_MIN + 1; i < IF_MAX - 1; i++) {
+				//console.log("checking local maximum at i=" + i + " data[i]=" + data[i] + " vLoc[last]=" + vLocMax[MNLM-1] );
+				if (diff[i] > diff[i - 1] && diff[i] > diff[i + 1] && outBuffer[i] > vLocMax[MNLM - 1]) { // if local maximum big enough
+					// insert the newly found local maximum in the ordered list of maxima
+					for (int j = MNLM - 1; j >= 0; j--) {
+						// navigate the table of previously saved maxima
+						if (j >= 1 && outBuffer[i] > vLocMax[j - 1]) continue;
+						for (int k = MNLM - 1; k >= j + 1; k--) {
+							iLocMax[k] = iLocMax[k - 1];	// offset the bottom values
+							vLocMax[k] = vLocMax[k - 1];
+						}
+						iLocMax[j] = i;
+						vLocMax[j] = outBuffer[i];
+						break;
+					}
+				}
+			}
+
+			// now that we have the MNLM highest local maxima of the spectrum,
+			// update the local maximum threshold so that only major peaks are taken into account.
+			for (int i = 0; i < MNLM; i++) {
+				if (vLocMax[i] > std::numeric_limits<double>::lowest()) {
+					for (int j = IF_MIN; j < IF_MAX; j++) {
+						int tmp = (int)iLocMax[i];
+						threshold[j] = std::max(threshold[j], log(outBuffer[iLocMax[i]]) + EWW[tmp][j]);
+					}
+				}
+				else {
+					vLocMax.erase(vLocMax.begin()+ i, vLocMax.begin() + i + MNLM - i); // remove the last elements.
+					iLocMax.erase(iLocMax.begin() + i, iLocMax.begin() + i + MNLM - i);
+					break;
+				}
+			}
+
+			
+			// array that stores local maxima for each time step
+			//marks.push({ "t": Math.round(this.stepIndex / STEP), "i" : iLocMax, "v" : vLocMax });
+			marks.push_back({(double)t, iLocMax, vLocMax});
+			// remove previous (in time) maxima that would be too close and/or too low.
+			int nm = marks.size() ;
+			int t0 = nm - PRUNING_DT - 1;
+			for (int  i = nm - 1; i >= std::max(t0 + 1, 0); i--) {
+				//console.log("pruning ntests=" + this.marks[i].v.length);
+				for (int j = 0; j < marks[i].v.size(); j++) {
+					//console.log("pruning " + this.marks[i].v[j] + " <? " + this.threshold[this.marks[i].i[j]] + " * " + Math.pow(this.mask_decay, lenMarks-1-i));
+					if (marks[i].i[j] != 0 && log(marks[i].v[j]) < threshold[marks[i].i[j]] + MASK_DECAY_LOG * (nm - 1 - i)) {
+
+						marks[i].v[j] = std::numeric_limits<double>::lowest();
+						marks[i].i[j] = std::numeric_limits<double>::lowest();
+					}
+				}
+			}
+
+			// generate hashes for peaks that can no longer be pruned. stepIndex:{f1:f2:deltaindex}
+			int nFingersTotal = 0;
+			if (t0 >= 0) {
+				struct Triplet m = marks[t0];
+
+			loopCurrentPeaks:
+				for (int i = 0; i < m.i.size(); i++) {
+					int nFingers = 0;
+
+				loopPastTime:
+					for (int j = t0; j >= std::max(0, t0 - WINDOW_DT); j--) {
+
+						struct Triplet m2 = marks[j];
+
+					loopPastPeaks:
+						for (int k = 0; k < m2.i.size(); k++) {
+							if (m2.i[k] != m.i[i] && abs(m2.i[k] - m.i[i]) < WINDOW_DF) {
+								tcodes.push_back(m.t); //Math.round(this.stepIndex/STEP));
+								// in the hash: dt=(t0-j) has values between 0 and WINDOW_DT, so for <65 6 bits each
+								//				f1=m2.i[k] , f2=m.i[i] between 0 and NFFT/2-1, so for <255 8 bits each.
+								hcodes.push_back(m2.i[k] + NFFT / 2 * (m.i[i] + NFFT / 2 * (t0 - j)));
+								nFingers += 1;
+								nFingersTotal += 1;
+
+								if (nFingers >= MPPP) goto loopCurrentPeaks;
+							}
+						}
+					}
+				}
+			}
+
+			// decrease the threshold for the next iteration
+			for (int j = 0; j < threshold.size(); j++) {
+				threshold[j] += MASK_DECAY_LOG;
+			}
+
+			
+
+			/*long long h = hash(freqbandWidth, pt1, pt2, pt3);
+
+			if (isMatching) {
+				std::list<DataPoint> listPoints;
+
+				if (hashMap.find(h) != hashMap.end()) {
+					listPoints = hashMap.find(h)->second;
+
+					for (DataPoint dP : listPoints) {
+
+						int offset = std::abs(dP.getTime() - t);
+
+						std::unordered_map<int, int> tmpMap;
+
+						if ((matchMap.find(dP.getSongId())) == matchMap.end()) {
+
+							tmpMap.insert(std::pair<int, int>(offset, 1));
+
+							matchMap.insert(std::pair<long long, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
+
+						}
+						else {
+							tmpMap = matchMap.find(dP.getSongId())->second;
+
+							if ((tmpMap.find(offset)) == tmpMap.end()) {
+								tmpMap.insert(std::pair<int, int>(offset, 1));
+							}
+							else {
+								int count = tmpMap.find(offset)->second;
+								tmpMap.insert(std::pair<int, int>(offset, count + 1));
+							}
+						}
+					}
+				}
+
+			}
+			else {
+				std::list<DataPoint> listPoints;
+
+				if (hashMap.find(h) == hashMap.end()) {
+
+					DataPoint point = DataPoint((int)songId, t);
+					listPoints.push_back(point);
+					hashMap.insert(std::pair<long long, std::list<DataPoint>>(h, listPoints));
+				}
+				else {
+
+					DataPoint point = DataPoint(songId, t);
+					hashMap.find(h)->second.push_back(point);
+				}
+			}*/
+				
+		}
+	}
