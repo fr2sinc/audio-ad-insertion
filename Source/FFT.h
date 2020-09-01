@@ -128,7 +128,7 @@ public:
 		//to find the simultaneous presence of two frequencies in one tone
 		for (int i = 0; i < dtmfsSize/2; i++) {
 			DBG(dtmf_levels[i]);
-			if (dtmf_levels[i] > 95.0)//threshold of activation
+			if (dtmf_levels[i] > 80.0)//threshold of activation
 				firstTone = true;
 		}
 		for (int i = dtmfsSize / 2; i < dtmfsSize ; i++) {
