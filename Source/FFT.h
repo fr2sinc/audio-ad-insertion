@@ -136,173 +136,27 @@ public:
 			if (dtmf_levels[i] > 350.0)
 				secondTone = true;
 		}
-		//check secondTone if you desire a two frequency match
+		//check secondTone if you need a two frequency match
 		if (firstTone)
 			return true;
 		
 		return false;
 	}	
 
-	void generateHashes(int songId, bool isMatching, juce::String input_file = "") {
-
-		File file(input_file);
-		AudioFormatManager formatManager;
-		formatManager.registerBasicFormats();
+	void generateHashes(int songId, bool isMatching, juce::String input_file = "") {		
 		
 		juce::AudioBuffer<float> fileBuffer;
 		int samples;
+		File file(input_file);
+		juce::String filename = file.getFileName();
+		//String filename = input_file;
+
 		if (!isMatching) {
-			//incremente totNumber of Songs
+			//increment totNumber of Songs
 			nrSongs++;
-
-			std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file)); 			
-
-			if (reader.get() != nullptr) {
-				auto duration = (float)reader->lengthInSamples / reader->sampleRate;               
-
-				fileBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);  
-				reader->read(&fileBuffer,                                                      
-					0,                                                                
-					(int)reader->lengthInSamples,                                    
-					0,                                                                
-					true,                                                             
-					true);                                                            
-																				  
-			}			
-			//samples = fileBuffer.getNumSamples();
-			samples = (int)m_sampleRate * 15;
-		}
-		else {			
-			fileBuffer = songMatchFifo;
-			samples = (int)m_sampleRate * 15;
-		}
-		
-		const float* bufferData = fileBuffer.getReadPointer(0, 0);
-
-		std::array<float, fftSize> inputBuffer;
-		std::array<float, 2*fftSize> outBuffer;
-		int sect = 0;
-		
-		int freqbandWidth = 40;
-		int t = 0; //timeFrame Counter
-
-
-		for (int i = 0; i < samples; i++) {
-			if (sect < fftSize) {//fill the inputBuffer		
-
-				inputBuffer[sect] = bufferData[i];
-				sect++;
-			}
-			else {
-				sect = 0;
-				i -= 1;
-				
-				juce::zeromem(outBuffer.data(), sizeof(outBuffer));
-				memcpy(outBuffer.data(), inputBuffer.data(), sizeof(inputBuffer));
-
-				forwardFFT.performFrequencyOnlyForwardTransform(outBuffer.data()); //FFT computation
 			
-				float freq1 = 0, freq2 = 0, freq3 = 0, freq4 = 0;
-				int pt1 = 0, pt2 = 0, pt3 = 0, pt4 = 0;
-
-				int freqbandWidth2 = 80;
-				int freqbandWidth3 = 120;
-				int freqbandWidth4 = 180;
-				int freqbandWidth5 = 256;
-				
-
-				for (int k = freqbandWidth; k < freqbandWidth5; k++) {
-
-					float Magnitude = outBuffer[k];
-
-					if (k >= freqbandWidth && k < freqbandWidth2 && Magnitude > freq1) {
-						freq1 = Magnitude;
-						pt1 = k;
-					}
-					else if (k >= freqbandWidth2 && k < freqbandWidth3 && Magnitude > freq2) {
-						freq2 = Magnitude;
-						pt2 = k;
-					}
-					else if (k >= freqbandWidth3 && k < freqbandWidth4 && Magnitude > freq3) {
-						freq3 = Magnitude;
-						pt3 = k;
-					}
-					else if (k >= freqbandWidth4 && k < freqbandWidth5 && Magnitude > freq4) {
-						freq4 = Magnitude;
-						pt4 = k;
-					}
-					
-				}
-				
-				long long h = hash(pt1, pt2, pt3, pt4);
-
-				if (isMatching) {
-					std::list<DataPoint> listPoints;
-
-					if (hashMap.find(h) != hashMap.end()) {
-						listPoints = hashMap.find(h)->second;
-
-						for (DataPoint dP : listPoints) {
-
-							int offset = std::abs(dP.getTime() - t);
-
-							
-
-							if ((matchMap.find(dP.getSongId())) == matchMap.end()) {
-								std::unordered_map<int, int> tmpMap;
-
-								tmpMap.insert(std::pair<int, int>(offset, 1));
-
-								matchMap.insert(std::pair<int, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
-
-							}
-							else {
-								//dannazione
-								std::unordered_map<int, int> tmpMap;
-								tmpMap = matchMap.find(dP.getSongId())->second;
-
-								if ((tmpMap.find(offset)) == tmpMap.end()) {									
-									matchMap.find(dP.getSongId())->second.insert(std::pair<int, int>(offset, 1));
-								}
-								else {
-									int count = tmpMap.find(offset)->second;									
-									matchMap.find(dP.getSongId())->second.find(offset)->second = count+1;
-								}
-							}
-						}
-					}
-
-				}
-				else {
-					std::list<DataPoint> listPoints;
-
-					if (hashMap.find(h) == hashMap.end()) {			
-
-						DataPoint point = DataPoint((int)songId, t);
-						listPoints.push_back(point);
-						hashMap.insert(std::pair<long long, std::list<DataPoint>>(h, listPoints));
-					}
-					else {
-						
-						DataPoint point = DataPoint(songId, t);
-						hashMap.find(h)->second.push_back(point);
-					}
-				}
-				t++;
-			}
-		}	
-	}
-	
-	void generateHashesOverlap(int songId, bool isMatching, juce::String input_file = "") {		
-
-		File file(input_file);
-		AudioFormatManager formatManager;
-		formatManager.registerBasicFormats();
-
-
-		juce::AudioBuffer<float> fileBuffer;
-		int samples;
-		if (!isMatching) {
+			AudioFormatManager formatManager;
+			formatManager.registerBasicFormats();
 
 			std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file)); 			
 
@@ -315,121 +169,140 @@ public:
 					(int)reader->lengthInSamples,                                    
 					0,                                                                
 					true,                                                             
-					true);                                                            
+					true);																				  
+			}						
+		}
+		else { //isMatching		
+			fileBuffer = songMatchFifo;			
+		}
 
-			}
-			//samples = fileBuffer.getNumSamples();
-			samples = (int)m_sampleRate * 15;
+		//set num of Samples (<= 10 seconds of samples)
+		if (fileBuffer.getNumSamples() < (int)m_sampleRate * 10) {
+			samples = fileBuffer.getNumSamples();
 		}
 		else {
-			fileBuffer = songMatchFifo;
-			samples = (int)m_sampleRate * 15;
-		}
-
-		std::array<float, 2 * fftSize> outBuffer;
-		int sect = 0;
-
-		int freqbandWidth = 40;
+			samples = (int)m_sampleRate * 10;
+		}		
+		
+		int freqbandWidth = 40;		
+		std::array<float, 2 * fftSize> outBuffer;		
 		int mread = 0;
 
-		for (int t = 0; t < samples/(fftSize/2); t++) {			
+		//t = timeframe counter
+		for (int t = 0; t < samples / fftSize; t++) {
 
-			memcpy(outBuffer.data(), fileBuffer.getReadPointer(0, mread), fftSize * sizeof(float));								
-			mread += fftSize / 2;
+			memcpy(outBuffer.data(), fileBuffer.getReadPointer(0, mread), fftSize * sizeof(float));
+			mread += fftSize;			
 
-			window.multiplyWithWindowingTable(outBuffer.data(), fftSize);
 			forwardFFT.performFrequencyOnlyForwardTransform(outBuffer.data()); //FFT computation
-
-			float freq1 = 0, freq2 = 0, freq3 = 0, freq4 = 0;
+			
+			float magf1 = 0, magf2 = 0, magf3 = 0, magf4 = 0;
 			int pt1 = 0, pt2 = 0, pt3 = 0, pt4 = 0;
 
-			int freqbandWidth2 = freqbandWidth * 2; //80
-			int freqbandWidth3 = freqbandWidth * 3; //120
-			int freqbandWidth4 = freqbandWidth3 + 60; //180
-			int freqbandWidth5 = freqbandWidth4 + 120; //300
-
+			int freqbandWidth2 = 80;
+			int freqbandWidth3 = 120;
+			int freqbandWidth4 = 180;
+			int freqbandWidth5 = 256;
+				
 
 			for (int k = freqbandWidth; k < freqbandWidth5; k++) {
 
 				float Magnitude = outBuffer[k];
 
-				if (k >= freqbandWidth && k < freqbandWidth2 && Magnitude > freq1) {
-					freq1 = Magnitude;
+				if (k >= freqbandWidth && k < freqbandWidth2 && Magnitude > magf1) {
+					magf1 = Magnitude;
 					pt1 = k;
 				}
-				else if (k >= freqbandWidth2 && k < freqbandWidth3 && Magnitude > freq2) {
-					freq2 = Magnitude;
+				else if (k >= freqbandWidth2 && k < freqbandWidth3 && Magnitude > magf2) {
+					magf2 = Magnitude;
 					pt2 = k;
 				}
-				else if (k >= freqbandWidth3 && k < freqbandWidth4 && Magnitude > freq3) {
-					freq3 = Magnitude;
+				else if (k >= freqbandWidth3 && k < freqbandWidth4 && Magnitude > magf3) {
+					magf3 = Magnitude;
 					pt3 = k;
 				}
-				else if (k >= freqbandWidth4 && k < freqbandWidth5 && Magnitude > freq4) {
-					freq4 = Magnitude;
+				else if (k >= freqbandWidth4 && k < freqbandWidth5 && Magnitude > magf4) {
+					magf4 = Magnitude;
 					pt4 = k;
 				}
-
-			}			
-
-			long long h = hash(freqbandWidth, pt1, pt2, pt3);
+					
+			}
+						
+			long long h = hash(pt1, pt2, pt3, pt4);
+			writePeaksOnDisk(t, filename, pt1, pt2, pt3, pt4, h);
 
 			if (isMatching) {
+
 				std::list<DataPoint> listPoints;
 
-				if (hashMap.find(h) != hashMap.end()) {
+				if (hashMap.find(h) != hashMap.end()) { //se ha trovato un hash esistente già in memoria uguale a quello attuale
 					listPoints = hashMap.find(h)->second;
 
 					for (DataPoint dP : listPoints) {
 
 						int offset = std::abs(dP.getTime() - t);
+							
 
-						std::unordered_map<int, int> tmpMap;
-
-						if ((matchMap.find(dP.getSongId())) == matchMap.end()) {
-
+						if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se è il primo match di hash di una canzone nuova
+							std::unordered_map<int, int> tmpMap;
 							tmpMap.insert(std::pair<int, int>(offset, 1));
 
-							matchMap.insert(std::pair<long long, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
+							matchMap.insert(std::pair<int, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
 
 						}
-						else {
+						else { //se esistenvano già dei match per quella canzone
+								
+							std::unordered_map<int, int> tmpMap;
 							tmpMap = matchMap.find(dP.getSongId())->second;
 
-							if ((tmpMap.find(offset)) == tmpMap.end()) {
-								tmpMap.insert(std::pair<int, int>(offset, 1));
+							if ((tmpMap.find(offset)) == tmpMap.end()) {									
+								matchMap.find(dP.getSongId())->second.insert(std::pair<int, int>(offset, 1));
 							}
 							else {
-								int count = tmpMap.find(offset)->second;
-								tmpMap.insert(std::pair<int, int>(offset, count + 1));
+								int count = tmpMap.find(offset)->second;									
+								matchMap.find(dP.getSongId())->second.find(offset)->second = count+1;
 							}
 						}
 					}
 				}
 
 			}
-			else {
+			else { //nel caso in cui sta caricando in memoria gli hash di tutte le tracce/jingle
 				std::list<DataPoint> listPoints;
 
-				if (hashMap.find(h) == hashMap.end()) {
+				if (hashMap.find(h) == hashMap.end()) { //se non esiste quell'hash nella hasmap
 
-					DataPoint point = DataPoint((int)songId, t);
+					DataPoint point = DataPoint(songId, t);
 					listPoints.push_back(point);
 					hashMap.insert(std::pair<long long, std::list<DataPoint>>(h, listPoints));
 				}
-				else {
+				else { //se esiste quell'hash inserisce nella lista corrispondente il DataPoint
 
 					DataPoint point = DataPoint(songId, t);
 					hashMap.find(h)->second.push_back(point);
 				}
 			}			
-			
-		}
+		}	
 	}
 
+	void writePeaksOnDisk(int& t, String& filename, int& pt1, int& pt2, int& pt3, int& pt4, long long& h){
+		std::stringstream sstm;
+		sstm << "audio-ad-insertion-data\\peaks-songId" << filename << ".txt";
+		File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(sstm.str());
+		f.create();
+		if (t == 0) {
+			//clear file only in the first timeframe
+			f.replaceWithText("");
+		}
+
+		std::ostringstream oss;
+		oss << "Song: " << filename << " pt1: " << pt1 << " pt2: " << pt2 << " pt3: " << pt3 << " pt4: " << pt4 << " h: " << h << std::endl;
+		std::string var = oss.str();
+		f.appendText(oss.str());
+	}
 
 	void pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tmpBuffer, const int bufferLength) {
-		int totSamples = (int) m_sampleRate * 15; // up to 15 seconds of samples
+		int totSamples = (int) m_sampleRate * 10; // up to 10 seconds of samples
 
 		int samplesToCopy = bufferLength;
 
@@ -439,7 +312,7 @@ public:
 		const float* bufferData = tmpBuffer.getReadPointer(0);
 		songMatchFifo.copyFrom(0, songMatchFifoIndex, bufferData, samplesToCopy);
 
-		if (totSamples - songMatchFifoIndex < bufferLength) {
+		if (totSamples - songMatchFifoIndex < bufferLength) { //allora il songMatchFifo buffer è pieno e può essere effettuato il fingerprint
 			//Soluzione esterna: affida il match ad audfprint
 			/*writeAudioFileOnDisk(songMatchFifo);
 
@@ -451,7 +324,7 @@ public:
 			t.detach();*/
 
 			//Soluzione interna: affida il match a generateHashes()
-			//generateHashes(0, false);
+			//generateHashes(0, false);			
 			generateHashes(100, true);
 			int bestSong = bestMatch();
 

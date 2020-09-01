@@ -186,12 +186,14 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			tmpBuffer.setSize(1, bufferLength);
 			/*-----------------------------------------*/
 			//TODO
-			//gestisci il fatto che dopo aver riempito il buffer ed aver fatto il codice per matchare il fingerprint
+			//gestisci il fatto che dopo aver riempito il buffer ed aver eseguito il codice per matchare il fingerprint
 			//lui continua a rimpire il buffer fino a quando l'interruttore va ad OFF
 			
+			//injection effettiva
 			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
 
 			tmpBuffer.copyFrom(0, 0, bufferData, bufferLength);
+			//fingerprint Match
 			fft.pushSampleIntoSongMatchFifo(tmpBuffer, bufferLength);
 		}		
 
