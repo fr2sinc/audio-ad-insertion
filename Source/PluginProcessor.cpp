@@ -250,6 +250,7 @@ void FFTimplAudioProcessor::changeToneState() {
 				readerSource.reset(newSource.release());
 			}			
 			transportSource.start();
+			
 			timeCounter = 0;
 		}
 	}

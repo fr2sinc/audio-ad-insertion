@@ -18,6 +18,7 @@
 #include <unordered_map> 
 #include "DataPoint.h"
 #include <iostream>
+#include <fstream>
 #include <algorithm> 
 #include <limits>
 #include <thread>
@@ -192,8 +193,27 @@ public:
 		for (int t = 0; t < samples / fftSize; t++) {
 
 			memcpy(outBuffer.data(), fileBuffer.getReadPointer(0, mread), fftSize * sizeof(float));
+
+			/* //write waveform on disk
+			std::stringstream sstm;
+			sstm << "audio-ad-insertion-data\\waveform" << songId << ".txt";
+			File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(sstm.str());
+			f.create();
+			if (t == 0) {
+				//clear file only in the first timeframe
+				f.replaceWithText("");
+			}
+
+			std::ostringstream oss;
+			for (int count = 0; count < fftSize; count++) {
+				oss << outBuffer[count] << std::endl;
+			}			
+			std::string var = oss.str();
+			f.appendText(oss.str());*/
+
 			mread += fftSize;			
 
+			window.multiplyWithWindowingTable(outBuffer.data(), fftSize);
 			forwardFFT.performFrequencyOnlyForwardTransform(outBuffer.data()); //FFT computation
 			
 			float magf1 = 0, magf2 = 0, magf3 = 0, magf4 = 0;
@@ -229,7 +249,7 @@ public:
 			}
 						
 			long long h = hash(pt1, pt2, pt3, pt4);
-			writePeaksOnDisk(t, filename, pt1, pt2, pt3, pt4, h);
+			//writePeaksOnDisk(t, filename, pt1, pt2, pt3, pt4, h);
 
 			if (isMatching) {
 
@@ -324,7 +344,8 @@ public:
 			t.detach();*/
 
 			//Soluzione interna: affida il match a generateHashes()
-			//generateHashes(0, false);			
+			//generateHashes(0, false);	
+			//writeAudioFileOnDisk(songMatchFifo);
 			generateHashes(100, true);
 			int bestSong = bestMatch();
 
@@ -393,7 +414,7 @@ public:
 	}
 
 	void setSongMatchBuffer() {
-		songMatchFifo.setSize(1, (int)m_sampleRate * 15);
+		songMatchFifo.setSize(1, (int)m_sampleRate * 10);
 	}
 
 	enum {
