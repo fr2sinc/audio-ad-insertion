@@ -9,7 +9,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "FFT.h"
+#include "GoertzelAnalyzer.h"
+#include "Fingerprint.h"
 
 //==============================================================================
 /**
@@ -70,14 +71,12 @@ public:
 	void getStateInformation(juce::MemoryBlock& destData) override;
 	void setStateInformation(const void* data, int sizeInBytes) override;
 	
-	float mDelay{ 0.0 };
-
-	FFT fft;
+	float mDelay{ 0.0 };	
 
 private:
 	AudioBuffer<float> mDelayBuffer;
 	int mWritePosition{ 0 };
-	int mSampleRate{ 48000 };
+	int mSampleRate{ 0 };
 	bool toneOn = false;
 	bool audioInjection = false;
 	int timeCounter = 0;
@@ -89,7 +88,8 @@ private:
 	ToneState toneState = Off;
 	ToneState newToneState = Off;
 
-
+	GoertzelAnalyzer gAnalyzer;
+	Fingerprint fprint;
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
 };

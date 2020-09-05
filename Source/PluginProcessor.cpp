@@ -22,21 +22,25 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 	)
 #endif
 {
-	formatManager.registerBasicFormats();       // [1]
+	formatManager.registerBasicFormats();       // [1]	
 
-	/*---------------------------------------------------------*/
-	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");		
+	//first of all setup fingerprint
+	//set your host samplerate manually
+	fprint.setupFingerprint(48000, 10);
+
+	//---------------------------------------------------------
+	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");
 	DirectoryIterator dir_iterator(f, false);
-	
+
 	int songId = 0;
 	while (dir_iterator.next()) {
 
 		auto file = File(dir_iterator.getFile());
 
-		fft.generateHashes(songId, false, file.getFullPathName());
+		fprint.loadHashes(songId, false, file.getFullPathName());
 		songId++;
 	}
-	/*---------------------------------------------------------*/
+	//---------------------------------------------------------
 }
 
 FFTimplAudioProcessor::~FFTimplAudioProcessor()
@@ -117,10 +121,8 @@ void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 	const int delayBufferSize = 2 * (sampleRate + samplesPerBlock); //2sec of delay buffer
 	mDelayBuffer.setSize(numInputChannels, delayBufferSize);
 
-	fft.setSampleRate(sampleRate);
-	transportSource.prepareToPlay(samplesPerBlock, sampleRate);	
-
-	fft.setSongMatchBuffer();
+	gAnalyzer.setSampleRate(sampleRate);
+	transportSource.prepareToPlay(samplesPerBlock, sampleRate);
 }
 
 void FFTimplAudioProcessor::releaseResources()
@@ -194,7 +196,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 			tmpBuffer.copyFrom(0, 0, bufferData, bufferLength);
 			//fingerprint Match
-			fft.pushSampleIntoSongMatchFifo(tmpBuffer, bufferLength);
+			fprint.pushSampleIntoSongMatchFifo(tmpBuffer, bufferLength);
 		}		
 
 		//delay actions
@@ -212,7 +214,7 @@ void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	
 	//calculate FFT only in one channel, if I need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
 	if (channel == 0) {
 
-		bool fftResult = fft.checkDetectDTMF();
+		bool fftResult = gAnalyzer.checkDetectDTMF();
 
 		if (fftResult && timeCounter > 150) {
 			newToneState = On;
@@ -223,7 +225,7 @@ void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	
 
 		//fill fifo buffer to perform after frequency analysis
 		for (int sample = 0; sample < bufferLength; ++sample) {
-			fft.pushSampleIntoFifo(bufferData[sample]);			
+			gAnalyzer.pushSampleIntoFifo(bufferData[sample]);			
 		}
 
 	}
