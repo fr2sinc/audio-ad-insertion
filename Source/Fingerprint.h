@@ -37,7 +37,7 @@ public:
 
 	void pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tmpBuffer, const int bufferLength);
 
-	void setupFingerprint(double samplerate, int secToAnalyze);
+	void setupFingerprint(double samplerate, double secToAnalyze);
 
 private:
 	void resampleAudioBuffer(AudioBuffer<float>& buffer, unsigned int & numChannels, int64 & samples, double & sampleRateIn, double & sampleRateOut);
@@ -54,12 +54,11 @@ private:
 
 	const int FUZ_FACTOR = 2;
 
-private:
 	juce::dsp::FFT forwardFFT;
 	juce::dsp::WindowingFunction<float> window;
 	double m_sampleRate;
-	int secondsToAnalyze;
-	std::unordered_map<long long, std::list<DataPoint>> hashMap;	// Map<Hash, DataPoint>
+	double secondsToAnalyze;
+	std::unordered_map<long long, std::list<DataPoint>> hashMap;	// Map<Hash, List<DataPoint>>
 	std::unordered_map<int, std::unordered_map<int, int>> matchMap; // Map<SongId, Map<Offset, Count>>
 	
 	//analysis bands
@@ -76,6 +75,7 @@ private:
 
 	//needed to maintain a buffer state
 	juce::AudioBuffer<float> songMatchFifo;
+	juce::AudioBuffer<float> songMatchFifoCopy;
 	int songMatchFifoIndex = 0;
 	int nrSongs = 0;
 

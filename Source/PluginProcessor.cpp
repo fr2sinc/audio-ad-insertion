@@ -26,7 +26,7 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 
 	//first of all setup fingerprint
 	//set your host samplerate manually
-	fprint.setupFingerprint(48000, 10);
+	fprint.setupFingerprint(48000, 0.5);
 
 	//---------------------------------------------------------
 	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");
@@ -130,6 +130,7 @@ void FFTimplAudioProcessor::releaseResources()
 	// When playback stops, you can use this as an opportunity to free up any
 	// spare memory, etc.
 	transportSource.releaseResources();
+
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations

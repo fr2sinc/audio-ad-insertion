@@ -89,7 +89,8 @@ private:
 	ToneState newToneState = Off;
 
 	GoertzelAnalyzer gAnalyzer;
-	Fingerprint fprint;
+	Fingerprint fprint;	
+
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
 };

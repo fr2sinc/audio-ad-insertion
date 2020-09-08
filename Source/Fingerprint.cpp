@@ -29,9 +29,9 @@ void Fingerprint::matchHashes() {
 	int mread = 0;
 
 	//t = timeframe counter
-	for (int t = 0; t < songMatchFifo.getNumSamples() / fftSize; t++) {
+	for (int t = 0; t < songMatchFifoCopy.getNumSamples() / fftSize; t++) {
 
-		memcpy(outBuffer.data(), songMatchFifo.getReadPointer(0, mread), fftSize * sizeof(float));
+		memcpy(outBuffer.data(), songMatchFifoCopy.getReadPointer(0, mread), fftSize * sizeof(float));
 		//writeWaveFormOnDisk(t, 987, fftSize, outBuffer.data());
 
 		mread += fftSize;
@@ -68,37 +68,39 @@ void Fingerprint::matchHashes() {
 		long long h = hash(pt1, pt2, pt3, pt4);
 		//writePeaksOnDisk(t, "stream", pt1, pt2, pt3, pt4, h);		
 
-		std::list<DataPoint> listPoints;
+		if (h != 0) {//per evitare di matchare hash di silenzio (=0)
+			std::list<DataPoint> listPoints;
 
-		if (hashMap.find(h) != hashMap.end()) { //se ha trovato un hash esistente gi‡ in memoria uguale a quello attuale
-			listPoints = hashMap.find(h)->second;
+			if (hashMap.find(h) != hashMap.end()) { //se ha trovato un hash esistente gi√† in memoria uguale a quello attuale
+				listPoints = hashMap.find(h)->second;
 
-			for (DataPoint dP : listPoints) {
+				for (DataPoint dP : listPoints) {
 
-				int offset = std::abs(dP.getTime() - t);
+					int offset = std::abs(dP.getTime() - t);
 
-				if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se Ë il primo match di hash di una canzone nuova
-					std::unordered_map<int, int> tmpMap;
-					tmpMap.insert(std::pair<int, int>(offset, 1));
+					if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se √® il primo match di hash di una canzone nuova
+						std::unordered_map<int, int> tmpMap;
+						tmpMap.insert(std::pair<int, int>(offset, 1));
 
-					matchMap.insert(std::pair<int, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
+						matchMap.insert(std::pair<int, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
 
-				}
-				else { //se esistenvano gi‡ dei match per quella canzone
-
-					std::unordered_map<int, int> tmpMap;
-					tmpMap = matchMap.find(dP.getSongId())->second;
-
-					if ((tmpMap.find(offset)) == tmpMap.end()) {
-						matchMap.find(dP.getSongId())->second.insert(std::pair<int, int>(offset, 1));
 					}
-					else {
-						int count = tmpMap.find(offset)->second;
-						matchMap.find(dP.getSongId())->second.find(offset)->second = count + 1;
+					else { //se esistenvano gi√† dei match per quella canzone
+
+						std::unordered_map<int, int> tmpMap;
+						tmpMap = matchMap.find(dP.getSongId())->second;
+
+						if ((tmpMap.find(offset)) == tmpMap.end()) {
+							matchMap.find(dP.getSongId())->second.insert(std::pair<int, int>(offset, 1));
+						}
+						else {
+							int count = tmpMap.find(offset)->second;
+							matchMap.find(dP.getSongId())->second.find(offset)->second = count + 1;
+						}
 					}
 				}
 			}
-		}		
+		}
 
 	}
 }
@@ -121,11 +123,11 @@ void Fingerprint::loadHashes(int songId, bool isMatching, juce::String input_fil
 
 	transportSource.start();		
 
-	int samples = (int)m_sampleRate * secondsToAnalyze;	
+	int samples = juce::jmin((int)(m_sampleRate * secondsToAnalyze), (int)reader->lengthInSamples);	
 	std::array<float, 2 * fftSize> outBuffer;
 	
 	AudioBuffer<float> tmp;
-	tmp.setSize(1, 512);
+	tmp.setSize(1, fftSize);
 	//t = timeframe counter
 
 	for (int t = 0; t < samples / fftSize; t++) {
@@ -166,23 +168,26 @@ void Fingerprint::loadHashes(int songId, bool isMatching, juce::String input_fil
 		long long h = hash(pt1, pt2, pt3, pt4);
 		//writePeaksOnDisk(t, filename, pt1, pt2, pt3, pt4, h);
 
-		
-		//sta caricando in memoria gli hash di tutti i jingle
-		std::list<DataPoint> listPoints;
+		//per evitare di salvare hash di silenzio (=0)
+		if (h != 0) {
+			//sta caricando in memoria gli hash di tutti i jingle
+			std::list<DataPoint> listPoints;
 
-		if (hashMap.find(h) == hashMap.end()) { //se non esiste quell'hash nella hasmap
+			if (hashMap.find(h) == hashMap.end()) { //se non esiste quell'hash nella hasmap
 
-			DataPoint point = DataPoint(songId, t);
-			listPoints.push_back(point);
-			hashMap.insert(std::pair<long long, std::list<DataPoint>>(h, listPoints));
-		}
-		else { //se esiste quell'hash inserisce nella lista corrispondente il DataPoint
+				DataPoint point = DataPoint(songId, t);
+				listPoints.push_back(point);
+				hashMap.insert(std::pair<long long, std::list<DataPoint>>(h, listPoints));
+			}
+			else { //se esiste quell'hash inserisce nella lista corrispondente il DataPoint
 
-			DataPoint point = DataPoint(songId, t);
-			hashMap.find(h)->second.push_back(point);
+				DataPoint point = DataPoint(songId, t);
+				hashMap.find(h)->second.push_back(point);
+			}
 		}
 		
 	}
+	transportSource.stop();
 }
 
 void Fingerprint::resampleAudioBuffer(AudioBuffer<float>& buffer, unsigned int& numChannels, int64& samples, double& sampleRateIn, double& sampleRateOut) {
@@ -234,7 +239,7 @@ void Fingerprint::writePeaksOnDisk(int& t, String& filename, int& pt1, int& pt2,
 }
 
 void Fingerprint::pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tmpBuffer, const int bufferLength) {
-	int totSamples = (int)m_sampleRate * secondsToAnalyze; // up to secondsToAnalyze of samples
+	int totSamples = (int)(m_sampleRate * secondsToAnalyze); // up to secondsToAnalyze of samples
 
 	int samplesToCopy = bufferLength;
 
@@ -244,7 +249,7 @@ void Fingerprint::pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tm
 	const float* bufferData = tmpBuffer.getReadPointer(0);
 	songMatchFifo.copyFrom(0, songMatchFifoIndex, bufferData, samplesToCopy);
 
-	if (totSamples - songMatchFifoIndex < bufferLength) { //allora il songMatchFifo buffer Ë pieno e puÚ essere effettuato il fingerprint
+	if (totSamples - songMatchFifoIndex < bufferLength) { //allora il songMatchFifo buffer √® pieno e pu√≤ essere effettuato il fingerprint
 		//Soluzione esterna: affida il match ad audfprint
 		/*writeAudioFileOnDisk(songMatchFifo);
 
@@ -255,10 +260,16 @@ void Fingerprint::pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tm
 		});
 		t.detach();*/
 
-		//Soluzione interna: affida il match a generateHashes()		
-		//writeAudioFileOnDisk(songMatchFifo);
-		matchHashes();
-		int bestSong = calculateBestMatch();
+		//Soluzione interna: affida il match a generateHashes()
+		songMatchFifoCopy = songMatchFifo;
+		std::thread t([this]() {
+			matchHashes();
+			int bestSong = calculateBestMatch();
+
+		});
+		t.detach(); 
+		
+		
 
 		songMatchFifo.clear();
 		songMatchFifoIndex = 0;
@@ -279,16 +290,20 @@ int Fingerprint::calculateBestMatch() {
 
 	for (int id = 0; id < nrSongs; id++) {
 
-		std::unordered_map<int, int> tmpMap;
-		tmpMap = matchMap.find(id)->second;
 		int bestCountForSong = 0;
 
-		auto it = tmpMap.begin();
-		while (it != tmpMap.end()) {
-			if (it->second > bestCountForSong) {
-				bestCountForSong = it->second;
+		if (matchMap.find(id) != matchMap.end()) {//se ha trovato dei match per quell'id di jingle
+			std::unordered_map<int, int> tmpMap;
+			tmpMap = matchMap.find(id)->second;
+
+
+			auto it = tmpMap.begin();
+			while (it != tmpMap.end()) {
+				if (it->second > bestCountForSong) {
+					bestCountForSong = it->second;
+				}
+				it++;
 			}
-			it++;
 		}
 
 		std::ostringstream oss;
@@ -323,11 +338,11 @@ void Fingerprint::writeAudioFileOnDisk(const juce::AudioBuffer<float>& tmpBuffer
 		writer->writeFromAudioSampleBuffer(tmpBuffer, 0, tmpBuffer.getNumSamples());
 }
 
-void Fingerprint::setupFingerprint(double samplerate, int secToAnalyze) {
+void Fingerprint::setupFingerprint(double samplerate, double secToAnalyze) {
 	m_sampleRate = samplerate;	
 	secondsToAnalyze = secToAnalyze;
 	transportSource.prepareToPlay(fftSize, m_sampleRate);
-	songMatchFifo.setSize(1, (int)m_sampleRate * 10);
+	songMatchFifo.setSize(1, (int)(m_sampleRate * secToAnalyze));
 }
 
 long long Fingerprint::hash(long long p1, long long p2, long long p3, long long p4) {
@@ -450,7 +465,7 @@ long long Fingerprint::hash(long long p1, long long p2, long long p3, long long 
 
 			std::list<DataPoint> listPoints;
 
-			if (hashMap.find(h) != hashMap.end()) { //se ha trovato un hash esistente gi‡ in memoria uguale a quello attuale
+			if (hashMap.find(h) != hashMap.end()) { //se ha trovato un hash esistente gi√† in memoria uguale a quello attuale
 				listPoints = hashMap.find(h)->second;
 
 				for (DataPoint dP : listPoints) {
@@ -458,14 +473,14 @@ long long Fingerprint::hash(long long p1, long long p2, long long p3, long long 
 					int offset = std::abs(dP.getTime() - t);
 
 
-					if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se Ë il primo match di hash di una canzone nuova
+					if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se √® il primo match di hash di una canzone nuova
 						std::unordered_map<int, int> tmpMap;
 						tmpMap.insert(std::pair<int, int>(offset, 1));
 
 						matchMap.insert(std::pair<int, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
 
 					}
-					else { //se esistenvano gi‡ dei match per quella canzone
+					else { //se esistenvano gi√† dei match per quella canzone
 
 						std::unordered_map<int, int> tmpMap;
 						tmpMap = matchMap.find(dP.getSongId())->second;
