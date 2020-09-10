@@ -5,6 +5,10 @@
               jucerFormatVersion="1" pluginFormats="buildVST3" cppLanguageStandard="17">
   <MAINGROUP id="nYp2Da" name="audio-ad-insertion">
     <GROUP id="{D6378D04-1F02-8C68-C18F-2CABCE16A8E1}" name="Source">
+      <FILE id="phtoDe" name="FingerprintLive.cpp" compile="1" resource="0"
+            file="Source/FingerprintLive.cpp"/>
+      <FILE id="oXn3jI" name="FingerprintLive.h" compile="0" resource="0"
+            file="Source/FingerprintLive.h"/>
       <FILE id="vU07LI" name="Fingerprint.cpp" compile="1" resource="0" file="Source/Fingerprint.cpp"/>
       <FILE id="IxoOsz" name="Fingerprint.h" compile="0" resource="0" file="Source/Fingerprint.h"/>
       <FILE id="hAovAI" name="DataPoint.h" compile="0" resource="0" file="Source/DataPoint.h"/>

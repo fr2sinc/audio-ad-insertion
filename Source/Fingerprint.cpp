@@ -121,9 +121,10 @@ void Fingerprint::loadHashes(int songId, bool isMatching, juce::String input_fil
 		readerSource.reset(newSource.release());
 	}
 
-	transportSource.start();		
-
-	int samples = juce::jmin((int)(m_sampleRate * secondsToAnalyze), (int)reader->lengthInSamples);	
+	transportSource.start();	
+	//leggi tutto il file
+	int samples = transportSource.getTotalLength();
+	//int samples = juce::jmin((int)(m_sampleRate * secondsToAnalyze), (int)reader->lengthInSamples);	
 	std::array<float, 2 * fftSize> outBuffer;
 	
 	AudioBuffer<float> tmp;
@@ -240,26 +241,16 @@ void Fingerprint::writePeaksOnDisk(int& t, String& filename, int& pt1, int& pt2,
 
 void Fingerprint::pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tmpBuffer, const int bufferLength) {
 	int totSamples = (int)(m_sampleRate * secondsToAnalyze); // up to secondsToAnalyze of samples
-
-	int samplesToCopy = bufferLength;
-
+	/*int samplesToCopy = bufferLength;
 	if (totSamples - songMatchFifoIndex < bufferLength)
-		samplesToCopy = (totSamples - songMatchFifoIndex);
+		samplesToCopy = (totSamples - songMatchFifoIndex);*/
+	int samplesToCopy = juce::jmin(totSamples - songMatchFifoIndex, bufferLength);
 
 	const float* bufferData = tmpBuffer.getReadPointer(0);
 	songMatchFifo.copyFrom(0, songMatchFifoIndex, bufferData, samplesToCopy);
 
 	if (totSamples - songMatchFifoIndex < bufferLength) { //allora il songMatchFifo buffer è pieno e può essere effettuato il fingerprint
-		//Soluzione esterna: affida il match ad audfprint
-		/*writeAudioFileOnDisk(songMatchFifo);
-
-		std::thread t([]() {
-			//ShellExecute(0, "open", "cmd.exe", "/C ipconfig > out.txt", 0, SW_HIDE);
-			//set your own paths
-			std::system("cd C:\\Users\\Throw\\Documents\\JuceProjects\\FingerprintRepo\\audfprint-master && python audfprint.py match --dbase fpdbase.pklz C:\\Users\\Throw\\Documents\\audio-ad-insertion-data\\audioSampleToMatch\\sampleToMatch.wav >> myoutput.txt");
-		});
-		t.detach();*/
-
+		
 		//Soluzione interna: affida il match a generateHashes()
 		songMatchFifoCopy = songMatchFifo;
 		std::thread t([this]() {
@@ -267,9 +258,7 @@ void Fingerprint::pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tm
 			int bestSong = calculateBestMatch();
 
 		});
-		t.detach(); 
-		
-		
+		t.detach();
 
 		songMatchFifo.clear();
 		songMatchFifoIndex = 0;
@@ -284,8 +273,10 @@ int Fingerprint::calculateBestMatch() {
 	int bestSong = -1;
 
 	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\debugMatch.txt");
-	if (f.exists())
+	if (f.exists()) {
 		f.deleteFile();
+		//f.replaceWithText("");//clear
+	}
 	f.create();
 
 	for (int id = 0; id < nrSongs; id++) {
@@ -343,6 +334,8 @@ void Fingerprint::setupFingerprint(double samplerate, double secToAnalyze) {
 	secondsToAnalyze = secToAnalyze;
 	transportSource.prepareToPlay(fftSize, m_sampleRate);
 	songMatchFifo.setSize(1, (int)(m_sampleRate * secToAnalyze));
+	//songMatchFifo.setSize(1, (int)(512));
+
 }
 
 long long Fingerprint::hash(long long p1, long long p2, long long p3, long long p4) {
@@ -514,3 +507,13 @@ long long Fingerprint::hash(long long p1, long long p2, long long p3, long long 
 		}
 	}
 }*/
+
+//Soluzione esterna: affida il match ad audfprint
+/*writeAudioFileOnDisk(songMatchFifo);
+
+std::thread t([]() {
+	//ShellExecute(0, "open", "cmd.exe", "/C ipconfig > out.txt", 0, SW_HIDE);
+	//set your own paths
+	std::system("cd C:\\Users\\Throw\\Documents\\JuceProjects\\FingerprintRepo\\audfprint-master && python audfprint.py match --dbase fpdbase.pklz C:\\Users\\Throw\\Documents\\audio-ad-insertion-data\\audioSampleToMatch\\sampleToMatch.wav >> myoutput.txt");
+});
+t.detach();*/

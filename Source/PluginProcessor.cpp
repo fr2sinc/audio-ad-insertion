@@ -23,10 +23,14 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 #endif
 {
 	formatManager.registerBasicFormats();       // [1]	
+	initializeFprint(fprintLive);
+}
+
+void FFTimplAudioProcessor::initializeFprint(FingerprintLive& fprint) {
 
 	//first of all setup fingerprint
 	//set your host samplerate manually
-	fprint.setupFingerprint(48000, 0.5);
+	fprint.setupFingerprintLive(48000, 0.5);
 
 	//---------------------------------------------------------
 	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");
@@ -36,7 +40,6 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 	while (dir_iterator.next()) {
 
 		auto file = File(dir_iterator.getFile());
-
 		fprint.loadHashes(songId, false, file.getFullPathName());
 		songId++;
 	}
@@ -172,33 +175,35 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 	changeToneState();
 
+	if (fState == fOn) {
+		if (samplesRemaining > 0) {
+			samplesRemaining -= bufferLength;
+		}
+		else { //<=0
+			fState = fOff;
+			toneState = On;
+			samplesRemaining = 0;
+		}
+	}
+
 	for (int channel = 0; channel < totalNumInputChannels; ++channel) {
 
 		const float* bufferData = buffer.getReadPointer(channel);
 		const float* delayBufferData = mDelayBuffer.getReadPointer(channel);
 		
 		doToneAnalysis(channel, bufferLength, bufferData);
+		doFprintAnalysis(channel, bufferLength, buffer);
 
+		
 		//audio injection from audioFile into main Buffer, one time for all channels
 		//but in this way I'm not taking advantage of the delay
 		if (toneState == On && channel == 0) {
-
-			/*-----------------------------------------*/
-			//fill fifo buffer to perform after fingerprint match
-			AudioBuffer<float> tmpBuffer;
-			tmpBuffer.setSize(1, bufferLength);
-			/*-----------------------------------------*/
-			//TODO
-			//gestisci il fatto che dopo aver riempito il buffer ed aver eseguito il codice per matchare il fingerprint
-			//lui continua a rimpire il buffer fino a quando l'interruttore va ad OFF
-			
-			//injection effettiva
+			//injection
 			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
-
-			tmpBuffer.copyFrom(0, 0, bufferData, bufferLength);
-			//fingerprint Match
-			fprint.pushSampleIntoSongMatchFifo(tmpBuffer, bufferLength);
-		}		
+			//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);
+		}	
+		
+		
 
 		//delay actions
 		fillDelayBuffer(channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
@@ -208,6 +213,46 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	mWritePosition += bufferLength;
 	mWritePosition %= delayBufferLength;
 	timeCounter++;
+}
+
+/*void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
+	auto* bufferData = buffer.getReadPointer(0);
+	if (channel == 0) {
+		//fingerprint
+		for (int sample = 0; sample < bufferLength; ++sample) {
+			if (fState == fOff) {
+				int localSamples = fprintLive.pushSampleIntoSongMatchFifo(bufferData[sample]);
+				if (localSamples != -1) {
+					fState = fOn;
+					samplesRemaining = localSamples - (bufferLength - sample);
+
+					File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
+					auto* reader = formatManager.createReaderFor(file);
+
+					if (reader != nullptr) {
+						std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
+						transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+						readerSource.reset(newSource.release());
+					}
+					transportSource.start();
+					break;
+				}
+			}
+			else {
+				break;
+			}
+		}
+	}
+}*/
+
+void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
+	auto* bufferData = buffer.getReadPointer(0);
+	if (channel == 0) {
+		//fingerprint
+		for (int sample = 0; sample < bufferLength; ++sample) {			
+				int localSamples = fprintLive.pushSampleIntoSongMatchFifo(bufferData[sample]);
+		}
+	}
 }
 
 void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	const float* bufferData) {

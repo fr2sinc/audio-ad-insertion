@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "GoertzelAnalyzer.h"
 #include "Fingerprint.h"
+#include "FingerprintLive.h"
 
 //==============================================================================
 /**
@@ -24,8 +25,15 @@ public:
 		Off
 	};
 
+	enum fPrintState
+	{
+		fOn,
+		fOff
+	};
+
 	//==============================================================================
 	FFTimplAudioProcessor();
+	void initializeFprint(FingerprintLive & fprint);
 	~FFTimplAudioProcessor() override;
 
 	//==============================================================================
@@ -37,6 +45,8 @@ public:
 #endif
 
 	void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+	void doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer);
 
 	void doToneAnalysis(int channel, const int bufferLength, const float* bufferData);
 
@@ -90,7 +100,9 @@ private:
 
 	GoertzelAnalyzer gAnalyzer;
 	Fingerprint fprint;	
-
+	FingerprintLive fprintLive;
+	int samplesRemaining = 0;
+	fPrintState fState = fOff;
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
 };

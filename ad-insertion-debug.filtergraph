@@ -48,7 +48,7 @@
           uiLastX_Normal="414" uiLastY_Normal="75" uiopen_Normal="0">
     <PLUGIN name="simpleSignalGenerator" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\simpleSignalGenerator\Builds\VisualStudio2017\x64\Debug\VST3\simpleSignalGenerator.vst3"
-            uid="e95c8652" isInstrument="0" fileTime="173cda16a6a" infoUpdateTime="1746cac768c"
+            uid="e95c8652" isInstrument="0" fileTime="173cda16a6a" infoUpdateTime="17471f9c56e"
             numInputs="2" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -63,13 +63,26 @@
   <FILTER uid="13" x="0.6480541455160744" y="0.6554054054054054" DPIAware="0.0">
     <PLUGIN name="audio-ad-insertion" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\Builds\VisualStudio2017\x64\Debug\VST3\FFTimpl.vst3"
-            uid="e9596a53" isInstrument="0" fileTime="1746cac0a7d" infoUpdateTime="1746cac768c"
+            uid="e9596a53" isInstrument="0" fileTime="17471f8db8a" infoUpdateTime="17471f9c56e"
             numInputs="2" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
       <INPUTS>
         <BUS index="0" layout="L R"/>
       </INPUTS>
+      <OUTPUTS>
+        <BUS index="0" layout="L R"/>
+      </OUTPUTS>
+    </LAYOUT>
+  </FILTER>
+  <FILTER uid="14" x="0.09983079526226735" y="0.1655405405405405" DPIAware="">
+    <PLUGIN name="audioFilePlugin" format="VST3" category="Instrument|Synth"
+            manufacturer="yourcompany" version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audioFilePlugin\Builds\VisualStudio2017\x64\Debug\VST3\audioFilePlugin.vst3"
+            uid="e95aec5f" isInstrument="1" fileTime="174691688cf" infoUpdateTime="17471f9c56f"
+            numInputs="0" numOutputs="2" isShell="0"/>
+    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <LAYOUT>
+      <INPUTS/>
       <OUTPUTS>
         <BUS index="0" layout="L R"/>
       </OUTPUTS>
@@ -82,4 +95,6 @@
   <CONNECTION srcFilter="12" srcChannel="1" dstFilter="13" dstChannel="1"/>
   <CONNECTION srcFilter="13" srcChannel="0" dstFilter="3" dstChannel="0"/>
   <CONNECTION srcFilter="13" srcChannel="1" dstFilter="3" dstChannel="1"/>
+  <CONNECTION srcFilter="14" srcChannel="0" dstFilter="13" dstChannel="0"/>
+  <CONNECTION srcFilter="14" srcChannel="1" dstFilter="13" dstChannel="1"/>
 </FILTERGRAPH>
