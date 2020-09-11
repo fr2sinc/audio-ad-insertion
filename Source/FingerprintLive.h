@@ -25,7 +25,7 @@ public:
 	enum {
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
-		thresholdMatchCons = 10,
+		thresholdMatchCons = 5,
 		frameAnalysisAccumulator = 128,
 	};
 

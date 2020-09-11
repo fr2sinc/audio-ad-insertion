@@ -176,7 +176,8 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	changeToneState();
 
 	if (fState == fOn) {
-		if (samplesRemaining > 0) {
+		//meglio anticipare che posticipare
+		if (samplesRemaining - bufferLength > 0) {
 			samplesRemaining -= bufferLength;
 		}
 		else { //<=0
@@ -201,9 +202,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			//injection
 			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
 			//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);
-		}	
-		
-		
+		}		
 
 		//delay actions
 		fillDelayBuffer(channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
@@ -215,7 +214,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	timeCounter++;
 }
 
-/*void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
+void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
 	auto* bufferData = buffer.getReadPointer(0);
 	if (channel == 0) {
 		//fingerprint
@@ -243,17 +242,17 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			}
 		}
 	}
-}*/
-
-void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
-	auto* bufferData = buffer.getReadPointer(0);
-	if (channel == 0) {
-		//fingerprint
-		for (int sample = 0; sample < bufferLength; ++sample) {			
-				int localSamples = fprintLive.pushSampleIntoSongMatchFifo(bufferData[sample]);
-		}
-	}
 }
+
+//void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
+//	auto* bufferData = buffer.getReadPointer(0);
+//	if (channel == 0) {
+//		//fingerprint
+//		for (int sample = 0; sample < bufferLength; ++sample) {			
+//				int localSamples = fprintLive.pushSampleIntoSongMatchFifo(bufferData[sample]);
+//		}
+//	}
+//}
 
 void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	const float* bufferData) {
 

@@ -256,9 +256,9 @@ int FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {
 
 int FingerprintLive::calculateBestMatch() {
 
-	std::list<DataPoint> listPoints;
 	int bestCount = 0;
 	int bestSong = -1;
+	int bestOffset = -1;
 
 	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\debugMatch.txt");
 	if (f.exists()) {
@@ -266,46 +266,52 @@ int FingerprintLive::calculateBestMatch() {
 		//f.replaceWithText("");//clear
 	}
 	f.create();
+
 	int bestCountForSong = 0;
-	int bestOffset = 0;
+	int bestOffsetForSong = 0;
 
 	for (int id = 0; id < nrSongs; id++) {
 
-		if (matchMap.find(id) != matchMap.end()) {//se ha trovato dei match per quell'id di jingle
+		auto tmpMapIt = matchMap.find(id);
+		if (tmpMapIt != matchMap.end()) {//se ha trovato dei match per quell'id di jingle
 			std::unordered_map<int, int> tmpMap;
-			tmpMap = matchMap.find(id)->second;
-
+			tmpMap = tmpMapIt->second;
 
 			auto it = tmpMap.begin();
 			while (it != tmpMap.end()) {
 				if (it->second > bestCountForSong) {
 					bestCountForSong = it->second;
-					bestOffset = it->first;
+					bestOffsetForSong = it->first;
 				}
 				it++;
 			}
 		}
 
 		std::ostringstream oss;
-		oss << "Song: " << id << " bestCount: " << bestCountForSong << " bestOffset: " << bestOffset << std::endl;
+		oss << "Song: " << id << " bestCount: " << bestCountForSong << " bestOffset: " << bestOffsetForSong << std::endl;
 		std::string var = oss.str();
 		f.appendText(oss.str());
 		
 		if (bestCountForSong > bestCount) {
 			bestCount = bestCountForSong;
 			bestSong = id;
+			bestOffset = bestOffsetForSong;
 		}
+		bestCountForSong = 0;
+		bestOffsetForSong = 0;
 	}
 	int sampleRemainings;
-	if (bestCountForSong > thresholdMatchCons) {
+
+	if (bestCount > thresholdMatchCons) {
 		sampleRemainings = jingleDurationMap.find(bestSong)->second - (frameAnalysisAccumulator * fftSize) - (bestOffset * fftSize);
 		std::ostringstream oss;
 		oss << "bestsong: " << bestSong << " duration: " << jingleDurationMap.find(bestSong)->second << " SamplesRemaining:"<< sampleRemainings << std::endl;
 		std::string var = oss.str();
 		f.appendText(oss.str());
 	}
-	else
+	else {
 		sampleRemainings = -1;
+	}
 	return sampleRemainings;
 }
 
