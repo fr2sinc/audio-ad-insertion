@@ -221,7 +221,8 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 		for (int sample = 0; sample < bufferLength; ++sample) {
 			if (fState == fOff) {
 				int localSamples = fprintLive.pushSampleIntoSongMatchFifo(bufferData[sample]);
-				if (localSamples != -1) {
+				//handle negative case, it's a critical case
+				if (localSamples > 0) {
 					fState = fOn;
 					samplesRemaining = localSamples - (bufferLength - sample);
 

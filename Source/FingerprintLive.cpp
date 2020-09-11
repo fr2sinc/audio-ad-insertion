@@ -70,7 +70,7 @@ void FingerprintLive::matchHashes(int currentTime) {
 
 			for (DataPoint dP : listPoints) {
 
-				int offset = std::abs(dP.getTime() - currentTime);
+				int offset = dP.getTime() - currentTime;
 
 				if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se è il primo match di hash di una canzone nuova
 					std::unordered_map<int, int> tmpMap;
@@ -253,7 +253,7 @@ int FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {
 	++fifoIndex;
 	return samplesRemaining;
 }
-
+//vitale bestOffset > 0
 int FingerprintLive::calculateBestMatch() {
 
 	int bestCount = 0;
@@ -302,7 +302,11 @@ int FingerprintLive::calculateBestMatch() {
 	}
 	int sampleRemainings;
 
-	if (bestCount > thresholdMatchCons) {
+	offset1 = offset2;
+	offset2 = offset3;
+	offset3 = bestOffset;
+
+	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == 256)) {
 		sampleRemainings = jingleDurationMap.find(bestSong)->second - (frameAnalysisAccumulator * fftSize) - (bestOffset * fftSize);
 		std::ostringstream oss;
 		oss << "bestsong: " << bestSong << " duration: " << jingleDurationMap.find(bestSong)->second << " SamplesRemaining:"<< sampleRemainings << std::endl;

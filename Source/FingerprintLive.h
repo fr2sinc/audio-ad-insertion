@@ -25,6 +25,7 @@ public:
 	enum {
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
+		//critical threshold, below this threshold the matches are correct but may belong to other moments of the jingle
 		thresholdMatchCons = 5,
 		frameAnalysisAccumulator = 128,
 	};
@@ -83,5 +84,10 @@ private:
 	int windowAnalysisIndex = 0;
 	std::unordered_map<int, int> jingleDurationMap;	// Map<songId, lengthInSamples>
 	
+	int offset1 = 0;
+	int offset2 = 0;
+
+	int offset3 = 0;
+
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FingerprintLive)
 };
