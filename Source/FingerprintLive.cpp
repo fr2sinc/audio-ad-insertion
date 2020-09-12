@@ -65,7 +65,7 @@ void FingerprintLive::matchHashes(int currentTime) {
 	if (h != 0) {//per evitare di matchare hash di silenzio (=0)
 		std::list<DataPoint> listPoints;
 
-		if (hashMap.find(h) != hashMap.end()) { //se ha trovato un hash esistente gi‡ in memoria uguale a quello attuale
+		if (hashMap.find(h) != hashMap.end()) { //se ha trovato un hash esistente gi√† in memoria uguale a quello attuale
 			listPoints = hashMap.find(h)->second;
 
 			for (DataPoint dP : listPoints) {
@@ -73,14 +73,14 @@ void FingerprintLive::matchHashes(int currentTime) {
 				//removed std::abs();
 				int offset = dP.getTime() - currentTime;
 
-				if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se Ë il primo match di hash di una canzone nuova
+				if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se √® il primo match di hash di una canzone nuova
 					std::unordered_map<int, int> tmpMap;
 					tmpMap.insert(std::pair<int, int>(offset, 1));
 
 					matchMap.insert(std::pair<int, std::unordered_map<int, int>>(dP.getSongId(), tmpMap));
 
 				}
-				else { //se esistenvano gi‡ dei match per quella canzone
+				else { //se esistenvano gi√† dei match per quella canzone
 
 					std::unordered_map<int, int> tmpMap;
 					tmpMap = matchMap.find(dP.getSongId())->second;
@@ -310,7 +310,8 @@ int FingerprintLive::calculateBestMatch() {
 	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == frameAnalysisAccumulator * 2)) {
 		sampleRemainings = jingleMap.find(bestSong)->second.first - (frameAnalysisAccumulator * fftSize) - (bestOffset * fftSize);
 		std::ostringstream oss;
-		oss << "bestsong: " << bestSong << " duration: " << jingleMap.find(bestSong)->second.first << " SamplesRemaining:"<< sampleRemainings << std::endl;
+		oss << "bestsong: " << bestSong << "Song name: " << jingleMap.find(bestSong)->second.second 
+			<< " duration: " << jingleMap.find(bestSong)->second.first << " SamplesRemaining:"<< sampleRemainings << std::endl;
 		std::string var = oss.str();
 		f.appendText(oss.str());
 	}
