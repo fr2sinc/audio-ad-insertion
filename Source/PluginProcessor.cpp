@@ -24,6 +24,11 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 {
 	formatManager.registerBasicFormats();       // [1]	
 	initializeFprint(fprintLive);
+	//JsonUtility::writeHashMap(fprintLive.getHashMap());
+	//JsonUtility::writeJingleMap(fprintLive.getJingleMap());
+	JsonUtility::readHashMap(fprintLive.getHashMap());
+	JsonUtility::readJingleMap(fprintLive.getJingleMap());
+
 }
 
 void FFTimplAudioProcessor::initializeFprint(FingerprintLive& fprint) {
@@ -33,7 +38,7 @@ void FFTimplAudioProcessor::initializeFprint(FingerprintLive& fprint) {
 	fprint.setupFingerprintLive(48000, 0.5);
 
 	//---------------------------------------------------------
-	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");
+	/*File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");
 	DirectoryIterator dir_iterator(f, false);
 
 	int songId = 0;
@@ -42,7 +47,7 @@ void FFTimplAudioProcessor::initializeFprint(FingerprintLive& fprint) {
 		auto file = File(dir_iterator.getFile());
 		fprint.loadHashes(songId, false, file.getFullPathName());
 		songId++;
-	}
+	}*/
 	//---------------------------------------------------------
 }
 

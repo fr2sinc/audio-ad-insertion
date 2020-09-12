@@ -70,6 +70,7 @@ void FingerprintLive::matchHashes(int currentTime) {
 
 			for (DataPoint dP : listPoints) {
 
+				//removed std::abs();
 				int offset = dP.getTime() - currentTime;
 
 				if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se è il primo match di hash di una canzone nuova
@@ -118,7 +119,7 @@ void FingerprintLive::loadHashes(int songId, bool isMatching, juce::String input
 	transportSource.start();
 	//leggi tutto il file
 	int samples = transportSource.getTotalLength();
-	jingleDurationMap.insert(std::pair<int, int>(songId, samples));
+	jingleMap.insert(std::pair<int, std::pair<int, std::string>>(songId, std::pair<int, std::string>(samples, filename.toStdString())));
 
 	//int samples = juce::jmin((int)(m_sampleRate * secondsToAnalyze), (int)reader->lengthInSamples);	
 	std::array<float, 2 * fftSize> outBuffer;
@@ -270,7 +271,7 @@ int FingerprintLive::calculateBestMatch() {
 	int bestCountForSong = 0;
 	int bestOffsetForSong = 0;
 
-	for (int id = 0; id < nrSongs; id++) {
+	for (int id = 0; id < jingleMap.size(); id++) {
 
 		auto tmpMapIt = matchMap.find(id);
 		if (tmpMapIt != matchMap.end()) {//se ha trovato dei match per quell'id di jingle
@@ -306,10 +307,10 @@ int FingerprintLive::calculateBestMatch() {
 	offset2 = offset3;
 	offset3 = bestOffset;
 
-	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == 256)) {
-		sampleRemainings = jingleDurationMap.find(bestSong)->second - (frameAnalysisAccumulator * fftSize) - (bestOffset * fftSize);
+	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == frameAnalysisAccumulator * 2)) {
+		sampleRemainings = jingleMap.find(bestSong)->second.first - (frameAnalysisAccumulator * fftSize) - (bestOffset * fftSize);
 		std::ostringstream oss;
-		oss << "bestsong: " << bestSong << " duration: " << jingleDurationMap.find(bestSong)->second << " SamplesRemaining:"<< sampleRemainings << std::endl;
+		oss << "bestsong: " << bestSong << " duration: " << jingleMap.find(bestSong)->second.first << " SamplesRemaining:"<< sampleRemainings << std::endl;
 		std::string var = oss.str();
 		f.appendText(oss.str());
 	}
@@ -351,4 +352,12 @@ long long FingerprintLive::hash(long long p1, long long p2, long long p3, long l
 	return (p4 - (p4 % FUZ_FACTOR)) * 100000000 + (p3 - (p3 % FUZ_FACTOR))
 		* 100000 + (p2 - (p2 % FUZ_FACTOR)) * 100
 		+ (p1 - (p1 % FUZ_FACTOR));
+}
+
+std::unordered_map<long long, std::list<DataPoint>>& FingerprintLive::getHashMap() {
+	return hashMap;
+}
+
+std::unordered_map<int, std::pair<int, std::string>>& FingerprintLive::getJingleMap() {
+	return jingleMap;
 }

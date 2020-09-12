@@ -12,7 +12,7 @@
 #include "GoertzelAnalyzer.h"
 #include "Fingerprint.h"
 #include "FingerprintLive.h"
-
+#include "JsonUtility.h"
 //==============================================================================
 /**
 */

@@ -15,13 +15,23 @@ public: DataPoint(int songId, int time) {
 		this->songId = songId;
 		this->time = time;
 	}
+		//needed default constructor to serialize with nlohmann json
+		DataPoint() {}
 
-	int getTime() {
+	int getTime() const {
 		return time;
 	}
 
-	int getSongId() {
+	int getSongId() const {
 		return songId;
+	}
+
+	void setTime(int time) {
+		this->time = time;
+	}
+
+	void setSongId(int songId) {
+		this->songId = songId;
 	}
 
 private:

@@ -42,6 +42,10 @@ public:
 
 	void setupFingerprintLive(double samplerate, double secToAnalyze);
 
+	std::unordered_map<long long, std::list<DataPoint>>& getHashMap();
+
+	std::unordered_map<int, std::pair<int, std::string>>& getJingleMap();
+
 private:
 	void resampleAudioBuffer(AudioBuffer<float>& buffer, unsigned int & numChannels, int64 & samples, double & sampleRateIn, double & sampleRateOut);
 
@@ -82,11 +86,10 @@ private:
 	int nrSongs = 0;
 
 	int windowAnalysisIndex = 0;
-	std::unordered_map<int, int> jingleDurationMap;	// Map<songId, lengthInSamples>
+	std::unordered_map<int, std::pair<int, std::string>> jingleMap;	// Map<songId, (lengthInSamples, jingle name)>
 	
 	int offset1 = 0;
 	int offset2 = 0;
-
 	int offset3 = 0;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FingerprintLive)
