@@ -38,6 +38,8 @@ public:
 
 	void loadHashes(int songId, bool isMatching, juce::String input_file);
 
+	int pushSampleIntoSongMatchFifoOverlap(const float & sample);
+
 	int pushSampleIntoSongMatchFifo(const float & sample);
 
 	void setupFingerprintLive(double samplerate, double secToAnalyze);
@@ -52,7 +54,7 @@ private:
 	void writeWaveFormOnDisk(int t, int idSong, int currentSize, float * outBuffer);
 
 	void writePeaksOnDisk(int & t, String & filename, int & pt1, int & pt2, int & pt3, int & pt4, long long & h);
-
+	
 	int calculateBestMatch();
 
 	void writeAudioFileOnDisk(const juce::AudioBuffer<float>& tmpBuffer);
@@ -83,6 +85,8 @@ private:
 	//needed to maintain a buffer state
 	std::array<float, fftSize> fifo;
 	int fifoIndex = 0;
+	int increment = 0;
+	bool lastOverlap = false;
 	int nrSongs = 0;
 
 	int windowAnalysisIndex = 0;

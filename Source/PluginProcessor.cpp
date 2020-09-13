@@ -225,7 +225,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 		//fingerprint
 		for (int sample = 0; sample < bufferLength; ++sample) {
 			if (fState == fOff) {
-				int localSamples = fprintLive.pushSampleIntoSongMatchFifo(bufferData[sample]);
+				int localSamples = fprintLive.pushSampleIntoSongMatchFifoOverlap(bufferData[sample]);
 				//handle negative case, it's a critical case
 				if (localSamples > 0) {
 					fState = fOn;

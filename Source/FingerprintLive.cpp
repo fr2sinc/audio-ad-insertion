@@ -236,9 +236,38 @@ void FingerprintLive::writePeaksOnDisk(int& t, String& filename, int& pt1, int& 
 	f.appendText(oss.str());
 }
 
+//sh**t overlap with duplicate WindowAnalysis Index is working!
+int FingerprintLive::pushSampleIntoSongMatchFifoOverlap(const float& sample) {
+	int samplesRemaining = -1;
+	if (fifoIndex == fftSize) {
+		
+		matchHashes(windowAnalysisIndex);
+		memcpy(fifo.data(), &fifo[fftSize / 2], sizeof(float) * fftSize / 2);
+		fifoIndex = fftSize/2;
+
+		increment++;
+		windowAnalysisIndex += increment % 2;
+
+		if (windowAnalysisIndex == frameAnalysisAccumulator && !lastOverlap) {
+			lastOverlap = true;
+		}
+		else if (windowAnalysisIndex == frameAnalysisAccumulator && lastOverlap) {
+			windowAnalysisIndex = 0;
+			increment = 0;
+			samplesRemaining = calculateBestMatch();
+			lastOverlap = false;
+			matchMap.clear();
+		}
+	}
+	fifo[fifoIndex] = sample;
+	++fifoIndex;
+	return samplesRemaining;
+}
+
 int FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {	
 	int samplesRemaining = -1;
 	if (fifoIndex == fftSize) {
+
 		matchHashes(windowAnalysisIndex);
 		fifoIndex = 0;
 		windowAnalysisIndex++;
@@ -288,10 +317,10 @@ int FingerprintLive::calculateBestMatch() {
 			}
 		}
 
-		std::ostringstream oss;
+		/*std::ostringstream oss;
 		oss << "Song: " << id << " bestCount: " << bestCountForSong << " bestOffset: " << bestOffsetForSong << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());
+		f.appendText(oss.str());*/
 		
 		if (bestCountForSong > bestCount) {
 			bestCount = bestCountForSong;
@@ -309,11 +338,11 @@ int FingerprintLive::calculateBestMatch() {
 
 	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == frameAnalysisAccumulator * 2)) {
 		sampleRemainings = jingleMap.find(bestSong)->second.first - (frameAnalysisAccumulator * fftSize) - (bestOffset * fftSize);
-		std::ostringstream oss;
+		/*std::ostringstream oss;
 		oss << "bestsong: " << bestSong << "Song name: " << jingleMap.find(bestSong)->second.second 
 			<< " duration: " << jingleMap.find(bestSong)->second.first << " SamplesRemaining:"<< sampleRemainings << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());
+		f.appendText(oss.str());*/
 	}
 	else {
 		sampleRemainings = -1;
