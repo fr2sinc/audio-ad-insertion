@@ -15,7 +15,8 @@
 /**
 */
 class FFTimplAudioProcessorEditor : public juce::AudioProcessorEditor,
-	public Slider::Listener
+	public Slider::Listener,
+	private juce::Timer
 {
 public:
 	FFTimplAudioProcessorEditor(FFTimplAudioProcessor&);
@@ -32,6 +33,11 @@ private:
 
 	Slider mDelaySlider;
 	void sliderValueChanged(Slider* slider) override;
+
+	void timerCallback() override;
+
+	juce::Label curJingleLabel;
+
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessorEditor)
 };

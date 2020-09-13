@@ -186,6 +186,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			samplesRemaining -= bufferLength;
 		}
 		else { //<=0
+			curJingle = "";
 			fState = fOff;
 			toneState = On;
 			samplesRemaining = 0;
@@ -225,11 +226,13 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 		//fingerprint
 		for (int sample = 0; sample < bufferLength; ++sample) {
 			if (fState == fOff) {
-				int localSamples = fprintLive.pushSampleIntoSongMatchFifoOverlap(bufferData[sample]);
+				std::pair<int, std::string> localSamples = fprintLive.pushSampleIntoSongMatchFifoOverlap(bufferData[sample]);
 				//handle negative case, it's a critical case
-				if (localSamples > 0) {
+				if (localSamples.first > 0) {
 					fState = fOn;
-					samplesRemaining = localSamples - (bufferLength - sample);
+					//set current recognition
+					samplesRemaining = localSamples.first - (bufferLength - sample);
+					curJingle = localSamples.second;
 
 					File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
 					auto* reader = formatManager.createReaderFor(file);

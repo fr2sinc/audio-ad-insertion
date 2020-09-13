@@ -82,6 +82,7 @@ public:
 	void setStateInformation(const void* data, int sizeInBytes) override;
 	
 	float mDelay{ 0.0 };	
+	juce::String curJingle;
 
 private:
 	AudioBuffer<float> mDelayBuffer;
@@ -103,6 +104,7 @@ private:
 	FingerprintLive fprintLive;
 	int samplesRemaining = 0;
 	fPrintState fState = fOff;
+
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
 };

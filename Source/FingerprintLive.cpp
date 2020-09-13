@@ -237,8 +237,10 @@ void FingerprintLive::writePeaksOnDisk(int& t, String& filename, int& pt1, int& 
 }
 
 //sh**t overlap with duplicate WindowAnalysis Index is working!
-int FingerprintLive::pushSampleIntoSongMatchFifoOverlap(const float& sample) {
+std::pair<int, std::string> FingerprintLive::pushSampleIntoSongMatchFifoOverlap(const float& sample) {
 	int samplesRemaining = -1;
+	std::string jingleName = "";
+
 	if (fifoIndex == fftSize) {
 		
 		matchHashes(windowAnalysisIndex);
@@ -254,18 +256,21 @@ int FingerprintLive::pushSampleIntoSongMatchFifoOverlap(const float& sample) {
 		else if (windowAnalysisIndex == frameAnalysisAccumulator && lastOverlap) {
 			windowAnalysisIndex = 0;
 			increment = 0;
-			samplesRemaining = calculateBestMatch();
+			std::pair<int, std::string> tuple = calculateBestMatch();
+			samplesRemaining = tuple.first;
+			jingleName = tuple.second;
 			lastOverlap = false;
 			matchMap.clear();
 		}
 	}
 	fifo[fifoIndex] = sample;
 	++fifoIndex;
-	return samplesRemaining;
+	return std::pair<int, std::string>(samplesRemaining, jingleName);
 }
 
-int FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {	
+std::pair<int, std::string> FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {
 	int samplesRemaining = -1;
+	std::string jingleName = "";
 	if (fifoIndex == fftSize) {
 
 		matchHashes(windowAnalysisIndex);
@@ -274,17 +279,19 @@ int FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {
 
 		if (windowAnalysisIndex == frameAnalysisAccumulator) {
 			windowAnalysisIndex = 0;
-			samplesRemaining = calculateBestMatch();
+			std::pair<int, std::string> tuple = calculateBestMatch();
+			samplesRemaining = tuple.first;
+			jingleName = tuple.second;
 			
 			matchMap.clear();
 		}
 	}
 	fifo[fifoIndex] = sample;
 	++fifoIndex;
-	return samplesRemaining;
+	return std::pair<int, std::string>(samplesRemaining, jingleName);
 }
 //vitale bestOffset > 0
-int FingerprintLive::calculateBestMatch() {
+std::pair<int, std::string> FingerprintLive::calculateBestMatch() {
 
 	int bestCount = 0;
 	int bestSong = -1;
@@ -331,6 +338,7 @@ int FingerprintLive::calculateBestMatch() {
 		bestOffsetForSong = 0;
 	}
 	int sampleRemainings;
+	std::string jingleName = "";
 
 	offset1 = offset2;
 	offset2 = offset3;
@@ -338,6 +346,7 @@ int FingerprintLive::calculateBestMatch() {
 
 	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == frameAnalysisAccumulator * 2)) {
 		sampleRemainings = jingleMap.find(bestSong)->second.first - (frameAnalysisAccumulator * fftSize) - (bestOffset * fftSize);
+		jingleName = jingleMap.find(bestSong)->second.second;
 		/*std::ostringstream oss;
 		oss << "bestsong: " << bestSong << "Song name: " << jingleMap.find(bestSong)->second.second 
 			<< " duration: " << jingleMap.find(bestSong)->second.first << " SamplesRemaining:"<< sampleRemainings << std::endl;
@@ -347,7 +356,7 @@ int FingerprintLive::calculateBestMatch() {
 	else {
 		sampleRemainings = -1;
 	}
-	return sampleRemainings;
+	return std::pair<int, std::string>(sampleRemainings, jingleName);
 }
 
 void FingerprintLive::writeAudioFileOnDisk(const juce::AudioBuffer<float>& tmpBuffer) {

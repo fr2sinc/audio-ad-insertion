@@ -38,9 +38,9 @@ public:
 
 	void loadHashes(int songId, bool isMatching, juce::String input_file);
 
-	int pushSampleIntoSongMatchFifoOverlap(const float & sample);
+	std::pair<int, std::string> pushSampleIntoSongMatchFifoOverlap(const float & sample);
 
-	int pushSampleIntoSongMatchFifo(const float & sample);
+	std::pair<int, std::string> pushSampleIntoSongMatchFifo(const float & sample);
 
 	void setupFingerprintLive(double samplerate, double secToAnalyze);
 
@@ -55,7 +55,7 @@ private:
 
 	void writePeaksOnDisk(int & t, String & filename, int & pt1, int & pt2, int & pt3, int & pt4, long long & h);
 	
-	int calculateBestMatch();
+	std::pair<int, std::string> calculateBestMatch();
 
 	void writeAudioFileOnDisk(const juce::AudioBuffer<float>& tmpBuffer);
 
