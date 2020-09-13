@@ -56,5 +56,14 @@ void FFTimplAudioProcessorEditor::sliderValueChanged(Slider * slider)
 }
 
 void FFTimplAudioProcessorEditor::timerCallback() {
+	if (audioProcessor.samplesRemaining == 0) {
 		curJingleLabel.setText(audioProcessor.curJingle, juce::dontSendNotification);
+	}
+	else {
+		double timeRemaining = (double)audioProcessor.samplesRemaining / (double)audioProcessor.mSampleRate;
+		std::ostringstream oss;
+		oss << audioProcessor.curJingle << ": remaining time: " << timeRemaining;
+		curJingleLabel.setText(oss.str(), juce::dontSendNotification);
+
+	}
 }

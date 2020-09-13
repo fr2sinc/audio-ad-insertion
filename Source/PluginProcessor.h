@@ -83,11 +83,12 @@ public:
 	
 	float mDelay{ 0.0 };	
 	juce::String curJingle;
+	int samplesRemaining = 0;
+	int mSampleRate{ 0 };
 
 private:
 	AudioBuffer<float> mDelayBuffer;
 	int mWritePosition{ 0 };
-	int mSampleRate{ 0 };
 	bool toneOn = false;
 	bool audioInjection = false;
 	int timeCounter = 0;
@@ -102,7 +103,6 @@ private:
 	GoertzelAnalyzer gAnalyzer;
 	Fingerprint fprint;	
 	FingerprintLive fprintLive;
-	int samplesRemaining = 0;
 	fPrintState fState = fOff;
 
 	//==============================================================================
