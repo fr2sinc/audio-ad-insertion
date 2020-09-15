@@ -28,7 +28,10 @@ public:
 	enum fPrintState
 	{
 		fOn,
-		fOff
+		fOff,
+		fMiddle,
+		fMiddleAtivated,
+		fWaitSecondJingle,
 	};
 
 	//==============================================================================
@@ -84,6 +87,8 @@ public:
 	float mDelay{ 0.0 };	
 	juce::String curJingle;
 	int samplesRemaining = 0;
+	int sampleAdRemaining = 0;
+	int second_jingle_duration = 0;
 	int mSampleRate{ 0 };
 
 private:

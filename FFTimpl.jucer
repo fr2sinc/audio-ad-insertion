@@ -5,6 +5,10 @@
               jucerFormatVersion="1" pluginFormats="buildVST3" cppLanguageStandard="17">
   <MAINGROUP id="nYp2Da" name="audio-ad-insertion">
     <GROUP id="{D6378D04-1F02-8C68-C18F-2CABCE16A8E1}" name="Source">
+      <FILE id="PVjI8h" name="RecognizedJingle.cpp" compile="1" resource="0"
+            file="Source/RecognizedJingle.cpp"/>
+      <FILE id="IuVfaj" name="RecognizedJingle.h" compile="0" resource="0"
+            file="Source/RecognizedJingle.h"/>
       <FILE id="yxWKO9" name="JsonUtility.cpp" compile="1" resource="0" file="Source/JsonUtility.cpp"/>
       <FILE id="f1jpkG" name="JsonUtility.h" compile="0" resource="0" file="Source/JsonUtility.h"/>
       <FILE id="YgDoOe" name="json.hpp" compile="0" resource="0" file="Source/json.hpp"/>

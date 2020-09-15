@@ -126,7 +126,7 @@ void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 	mSampleRate = sampleRate;
 
 	//now I need the num of samples to fit in the delay buffer
-	const int delayBufferSize = 2 * (sampleRate + samplesPerBlock); //2sec of delay buffer
+	const int delayBufferSize = 10 * (sampleRate + samplesPerBlock); //10sec of delay buffer
 	mDelayBuffer.setSize(numInputChannels, delayBufferSize);
 
 	gAnalyzer.setSampleRate(sampleRate);
@@ -187,9 +187,34 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		}
 		else { //<=0
 			curJingle = "";
-			fState = fOff;
+			fState = fMiddle;
 			toneState = On;
 			samplesRemaining = 0;
+		}
+	}
+
+	if (fState == fMiddleAtivated) {
+		//meglio anticipare che posticipare
+		if (sampleAdRemaining - bufferLength > 0) {
+			sampleAdRemaining -= bufferLength;
+		}
+		else { //<=0
+			//curJingle = "";
+			fState = fWaitSecondJingle;
+			toneState = Off;
+			sampleAdRemaining = 0;
+		}
+	}
+
+	if (fState == fWaitSecondJingle) {
+		//meglio anticipare che posticipare
+		if (second_jingle_duration - bufferLength > 0) {
+			second_jingle_duration -= bufferLength;
+		}
+		else { //<=0
+			//curJingle = "";
+			fState = fOff;//può riprendere a riconoscere il primo jingle			
+			second_jingle_duration = 0;
 		}
 	}
 
@@ -199,21 +224,23 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		const float* delayBufferData = mDelayBuffer.getReadPointer(channel);
 		
 		doToneAnalysis(channel, bufferLength, bufferData);
-		doFprintAnalysis(channel, bufferLength, buffer);
-
-		
-		//audio injection from audioFile into main Buffer, one time for all channels
-		//but in this way I'm not taking advantage of the delay
-		if (toneState == On && channel == 0) {
-			//injection
-			transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
-			//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);
-		}		
+		doFprintAnalysis(channel, bufferLength, buffer);			
 
 		//delay actions
 		fillDelayBuffer(channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
 		getFromDelayBuffer(buffer, channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
-	}	
+				
+	}
+
+	//audio injection from audioFile into main Buffer, one time for all channels
+		//I take advantage from delay actions
+	if (toneState == On /*&& channel == 0*/) {
+		//injection
+		transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+		//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);
+	}
+
+	
 
 	mWritePosition += bufferLength;
 	mWritePosition %= delayBufferLength;
@@ -223,16 +250,19 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
 	auto* bufferData = buffer.getReadPointer(0);
 	if (channel == 0) {
-		//fingerprint
-		for (int sample = 0; sample < bufferLength; ++sample) {
-			if (fState == fOff) {
-				std::pair<int, std::string> localSamples = fprintLive.pushSampleIntoSongMatchFifoOverlap(bufferData[sample]);
+
+		if (fState == fOff) {
+
+			//fingerprint
+			for (int sample = 0; sample < bufferLength; ++sample) {
+
+				RecognizedJingle localRJ = fprintLive.getRecognitionSamplesOffset(bufferData[sample]);
 				//handle negative case, it's a critical case
-				if (localSamples.first > 0) {
+				if (localRJ.getRemainingInSamples() > 0) {
 					fState = fOn;
 					//set current recognition
-					samplesRemaining = localSamples.first - (bufferLength - sample);
-					curJingle = localSamples.second;
+					samplesRemaining = (6 * mSampleRate) + localRJ.getRemainingInSamples() - (bufferLength - sample);
+					curJingle = localRJ.getTitle();
 
 					File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
 					auto* reader = formatManager.createReaderFor(file);
@@ -245,11 +275,26 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 					transportSource.start();
 					break;
 				}
-			}
-			else {
-				break;
+
 			}
 		}
+		else if (fState == fMiddle) {
+
+			//fingerprint
+			for (int sample = 0; sample < bufferLength; ++sample) {
+
+				RecognizedJingle localRJ = fprintLive.getRecognitionSamplesOffset(bufferData[sample]);
+				
+				if (localRJ.getOffsetInSamples() > 0) {
+					sampleAdRemaining = (6 * mSampleRate) - localRJ.getOffsetInSamples();
+					second_jingle_duration = localRJ.getDurationInSamples();
+					//toneState = Off;
+					fState = fMiddleAtivated;
+				}
+
+			}
+		}
+		
 	}
 }
 
@@ -290,6 +335,7 @@ void FFTimplAudioProcessor::changeToneState() {
 	if (toneState == On) {
 		if (newToneState == On) {
 			toneState = Off;
+			transportSource.stop();
 			timeCounter = 0;
 		}
 	}
@@ -329,7 +375,7 @@ void FFTimplAudioProcessor::fillDelayBuffer(int channel, const int bufferLength,
 void FFTimplAudioProcessor::getFromDelayBuffer(AudioBuffer<float>& buffer, int channel, const int bufferLength,
 	const int delayBufferLength, const float* bufferData, const float* delayBufferData) {
 
-	int delayTime = mDelay;//ex 500 ms
+	int delayTime = 6000;//mDelay;//ex 500 ms
 	const int readPosition = static_cast<int> (delayBufferLength + mWritePosition - (mSampleRate * delayTime / 1000)) % delayBufferLength;
 
 	if (delayBufferLength > bufferLength + readPosition) {

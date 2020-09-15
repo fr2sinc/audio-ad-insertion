@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include "RecognizedJingle.h"
 //==============================================================================
 /*
 */
@@ -38,9 +39,11 @@ public:
 
 	void loadHashes(int songId, bool isMatching, juce::String input_file);
 
-	std::pair<int, std::string> pushSampleIntoSongMatchFifoOverlap(const float & sample);
+	//std::pair<int, std::string> pushSampleIntoSongMatchFifoOverlap(const float & sample);
 
-	std::pair<int, std::string> pushSampleIntoSongMatchFifo(const float & sample);
+	RecognizedJingle getRecognitionSamplesOffset(const float & sample);
+
+	//std::pair<int, std::string> pushSampleIntoSongMatchFifo(const float & sample);
 
 	void setupFingerprintLive(double samplerate, double secToAnalyze);
 
@@ -55,7 +58,7 @@ private:
 
 	void writePeaksOnDisk(int & t, String & filename, int & pt1, int & pt2, int & pt3, int & pt4, long long & h);
 	
-	std::pair<int, std::string> calculateBestMatch();
+	RecognizedJingle calculateBestMatch();
 
 	void writeAudioFileOnDisk(const juce::AudioBuffer<float>& tmpBuffer);
 
