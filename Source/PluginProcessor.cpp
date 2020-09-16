@@ -131,6 +131,7 @@ void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 
 	gAnalyzer.setSampleRate(sampleRate);
 	transportSource.prepareToPlay(samplesPerBlock, sampleRate);
+	delayInSamples = sampleRate * 6; //6sec of fixed delay
 }
 
 void FFTimplAudioProcessor::releaseResources()
@@ -138,7 +139,6 @@ void FFTimplAudioProcessor::releaseResources()
 	// When playback stops, you can use this as an opportunity to free up any
 	// spare memory, etc.
 	transportSource.releaseResources();
-
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -179,44 +179,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	const int delayBufferLength = mDelayBuffer.getNumSamples();
 
 	changeToneState();
-
-	if (fState == fOn) {
-		//meglio anticipare che posticipare
-		if (samplesRemaining - bufferLength > 0) {
-			samplesRemaining -= bufferLength;
-		}
-		else { //<=0
-			curJingle = "";
-			fState = fMiddle;
-			toneState = On;
-			samplesRemaining = 0;
-		}
-	}
-
-	if (fState == fMiddleAtivated) {
-		//meglio anticipare che posticipare
-		if (sampleAdRemaining - bufferLength > 0) {
-			sampleAdRemaining -= bufferLength;
-		}
-		else { //<=0
-			//curJingle = "";
-			fState = fWaitSecondJingle;
-			toneState = Off;
-			sampleAdRemaining = 0;
-		}
-	}
-
-	if (fState == fWaitSecondJingle) {
-		//meglio anticipare che posticipare
-		if (second_jingle_duration - bufferLength > 0) {
-			second_jingle_duration -= bufferLength;
-		}
-		else { //<=0
-			//curJingle = "";
-			fState = fOff;//può riprendere a riconoscere il primo jingle			
-			second_jingle_duration = 0;
-		}
-	}
+	changeFprintState(bufferLength);	
 
 	for (int channel = 0; channel < totalNumInputChannels; ++channel) {
 
@@ -233,14 +196,13 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	}
 
 	//audio injection from audioFile into main Buffer, one time for all channels
-		//I take advantage from delay actions
+	//I take advantage from delay actions
 	if (toneState == On /*&& channel == 0*/) {
 		//injection
 		transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+		//fprint offline
 		//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);
 	}
-
-	
 
 	mWritePosition += bufferLength;
 	mWritePosition %= delayBufferLength;
@@ -256,12 +218,12 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 			//fingerprint
 			for (int sample = 0; sample < bufferLength; ++sample) {
 
-				RecognizedJingle localRJ = fprintLive.getRecognitionSamplesOffset(bufferData[sample]);
+				RecognizedJingle localRJ = fprintLive.getRecognitionWithOverlap(bufferData[sample]);
 				//handle negative case, it's a critical case
 				if (localRJ.getRemainingInSamples() > 0) {
 					fState = fOn;
 					//set current recognition
-					samplesRemaining = (6 * mSampleRate) + localRJ.getRemainingInSamples() - (bufferLength - sample);
+					samplesRemaining = delayInSamples + localRJ.getRemainingInSamples() - (bufferLength - sample);
 					curJingle = localRJ.getTitle();
 
 					File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
@@ -283,12 +245,12 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 			//fingerprint
 			for (int sample = 0; sample < bufferLength; ++sample) {
 
-				RecognizedJingle localRJ = fprintLive.getRecognitionSamplesOffset(bufferData[sample]);
+				RecognizedJingle localRJ = fprintLive.getRecognitionWithOverlap(bufferData[sample]);
 				
 				if (localRJ.getOffsetInSamples() > 0) {
-					sampleAdRemaining = (6 * mSampleRate) - localRJ.getOffsetInSamples();
+					samplesAdRemaining = delayInSamples - localRJ.getOffsetInSamples();
 					second_jingle_duration = localRJ.getDurationInSamples();
-					//toneState = Off;
+					curJingle = localRJ.getTitle();
 					fState = fMiddleAtivated;
 				}
 
@@ -298,6 +260,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 	}
 }
 
+//tester with no trigger
 //void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
 //	auto* bufferData = buffer.getReadPointer(0);
 //	if (channel == 0) {
@@ -327,6 +290,46 @@ void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	
 			gAnalyzer.pushSampleIntoFifo(bufferData[sample]);			
 		}
 
+	}
+}
+
+void FFTimplAudioProcessor::changeFprintState(const int bufferLength) {
+
+	if (fState == fOn) {
+		//meglio anticipare che posticipare
+		if (samplesRemaining - bufferLength > 0) {
+			samplesRemaining -= bufferLength;
+		}
+		else { //<=0
+			curJingle = "";
+			fState = fMiddle;
+			toneState = On;
+			samplesRemaining = 0;
+		}
+	}
+	else if (fState == fMiddleAtivated) {
+		//meglio anticipare che posticipare
+		if (samplesAdRemaining - bufferLength > 0) {
+			samplesAdRemaining -= bufferLength;
+		}
+		else { //<=0
+			curJingle = "";
+			fState = fWaitSecondJingle;
+			toneState = Off;
+			samplesAdRemaining = 0;
+		}
+	}
+	//accertati se questo debba essere fatto subito o al ciclo successivo di processblock
+	else if (fState == fWaitSecondJingle) {
+		//meglio anticipare che posticipare
+		if (second_jingle_duration - bufferLength > 0) {
+			second_jingle_duration -= bufferLength;
+		}
+		else { //<=0
+			curJingle = "";
+			fState = fOff;//può riprendere a riconoscere il primo jingle			
+			second_jingle_duration = 0;
+		}
 	}
 }
 
@@ -375,8 +378,9 @@ void FFTimplAudioProcessor::fillDelayBuffer(int channel, const int bufferLength,
 void FFTimplAudioProcessor::getFromDelayBuffer(AudioBuffer<float>& buffer, int channel, const int bufferLength,
 	const int delayBufferLength, const float* bufferData, const float* delayBufferData) {
 
-	int delayTime = 6000;//mDelay;//ex 500 ms
-	const int readPosition = static_cast<int> (delayBufferLength + mWritePosition - (mSampleRate * delayTime / 1000)) % delayBufferLength;
+	//int delayTime = 6000;//mDelay;//ex 500 ms
+	//(mSampleRate * delayTime / 1000)
+	const int readPosition = static_cast<int> (delayBufferLength + mWritePosition - delayInSamples) % delayBufferLength;
 
 	if (delayBufferLength > bufferLength + readPosition) {
 

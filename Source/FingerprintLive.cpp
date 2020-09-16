@@ -96,7 +96,6 @@ void FingerprintLive::matchHashes(int currentTime) {
 			}
 		}
 	}
-
 	
 }
 
@@ -269,7 +268,7 @@ void FingerprintLive::writePeaksOnDisk(int& t, String& filename, int& pt1, int& 
 	return std::pair<int, std::string>(samplesRemaining, jingleName);
 }*/
 
-RecognizedJingle FingerprintLive::getRecognitionSamplesOffset(const float& sample) {
+RecognizedJingle FingerprintLive::getRecognitionWithOverlap(const float& sample) {
 	int samplesOffset = -1;
 	int totalDuration = 0;
 	//std::string jingleName = "";
@@ -390,10 +389,8 @@ RecognizedJingle FingerprintLive::calculateBestMatch() {
 
 	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == frameAnalysisAccumulator * 2)) {
 		
-
 		auto it = jingleMap.find(bestSong);
 		if (it != jingleMap.end()) {
-
 			duration = it->second.first;
 			nSamplesOffset = (frameAnalysisAccumulator * fftSize) + (bestOffset * fftSize);
 			remaining = duration - nSamplesOffset;

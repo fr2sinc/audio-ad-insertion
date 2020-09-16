@@ -41,7 +41,7 @@ public:
 
 	//std::pair<int, std::string> pushSampleIntoSongMatchFifoOverlap(const float & sample);
 
-	RecognizedJingle getRecognitionSamplesOffset(const float & sample);
+	RecognizedJingle getRecognitionWithOverlap(const float & sample);
 
 	//std::pair<int, std::string> pushSampleIntoSongMatchFifo(const float & sample);
 

@@ -53,6 +53,8 @@ public:
 
 	void doToneAnalysis(int channel, const int bufferLength, const float* bufferData);
 
+	void changeFprintState(const int bufferLength);
+
 	void changeToneState();
 
 	void fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,
@@ -87,7 +89,7 @@ public:
 	float mDelay{ 0.0 };	
 	juce::String curJingle;
 	int samplesRemaining = 0;
-	int sampleAdRemaining = 0;
+	int samplesAdRemaining = 0;
 	int second_jingle_duration = 0;
 	int mSampleRate{ 0 };
 
@@ -110,6 +112,7 @@ private:
 	FingerprintLive fprintLive;
 	fPrintState fState = fOff;
 
+	int delayInSamples;
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
 };
