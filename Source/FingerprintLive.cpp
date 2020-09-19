@@ -268,10 +268,32 @@ void FingerprintLive::writePeaksOnDisk(int& t, String& filename, int& pt1, int& 
 	return std::pair<int, std::string>(samplesRemaining, jingleName);
 }*/
 
+/*std::pair<int, std::string> FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {
+	int samplesRemaining = -1;
+	std::string jingleName = "";
+	if (fifoIndex == fftSize) {
+
+		matchHashes(windowAnalysisIndex);
+		fifoIndex = 0;
+		windowAnalysisIndex++;
+
+		if (windowAnalysisIndex == frameAnalysisAccumulator) {
+			windowAnalysisIndex = 0;
+
+			std::pair<int, int> tuple = calculateBestMatch();
+			if (tuple.first > 0) {
+				samplesRemaining = jingleMap.find(tuple.second)->second.first - tuple.first;
+				jingleName = jingleMap.find(tuple.second)->second.second;
+			}
+			matchMap.clear();
+		}
+	}
+	fifo[fifoIndex] = sample;
+	++fifoIndex;
+	return std::pair<int, std::string>(samplesRemaining, jingleName);
+}*/
+
 RecognizedJingle FingerprintLive::getRecognitionWithOverlap(const float& sample) {
-	int samplesOffset = -1;
-	int totalDuration = 0;
-	//std::string jingleName = "";
 	RecognizedJingle rj;
 
 	if (fifoIndex == fftSize) {
@@ -306,30 +328,7 @@ RecognizedJingle FingerprintLive::getRecognitionWithOverlap(const float& sample)
 	return rj;
 }
 
-/*std::pair<int, std::string> FingerprintLive::pushSampleIntoSongMatchFifo(const float& sample) {
-	int samplesRemaining = -1;
-	std::string jingleName = "";
-	if (fifoIndex == fftSize) {
 
-		matchHashes(windowAnalysisIndex);
-		fifoIndex = 0;
-		windowAnalysisIndex++;
-
-		if (windowAnalysisIndex == frameAnalysisAccumulator) {
-			windowAnalysisIndex = 0;
-
-			std::pair<int, int> tuple = calculateBestMatch();
-			if (tuple.first > 0) {
-				samplesRemaining = jingleMap.find(tuple.second)->second.first - tuple.first;
-				jingleName = jingleMap.find(tuple.second)->second.second;
-			}			
-			matchMap.clear();
-		}
-	}
-	fifo[fifoIndex] = sample;
-	++fifoIndex;
-	return std::pair<int, std::string>(samplesRemaining, jingleName);
-}*/
 
 //vitale bestOffset > 0
 RecognizedJingle FingerprintLive::calculateBestMatch() {
@@ -338,11 +337,15 @@ RecognizedJingle FingerprintLive::calculateBestMatch() {
 	int bestSong = -1;
 	int bestOffset = -1;
 
-	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\debugMatch.txt");
-	if (f.exists()) {
+	std::ostringstream oss;
+	//juce::Time::getCurrentTime().formatted("%Y.%m.%d_%H.%M.%S") //user format
+	oss << "audio-ad-insertion-data\\logFrameAnalysisWindow\\" << juce::Time::getCurrentTime().toString(true, false) << ".txt";
+
+	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(oss.str());
+	/*if (f.exists()) {
 		f.deleteFile();
-	}
-	f.create();
+	}*/
+	auto result = f.create();
 
 	int bestCountForSong = 0;
 	int bestOffsetForSong = 0;
@@ -364,10 +367,10 @@ RecognizedJingle FingerprintLive::calculateBestMatch() {
 			}
 		}
 
-		/*std::ostringstream oss;
-		oss << "Song: " << id << " bestCount: " << bestCountForSong << " bestOffset: " << bestOffsetForSong << std::endl;
+		oss.str(std::string());
+		oss << "Jingle: " << id << " bestCount: " << bestCountForSong << " bestOffset: " << bestOffsetForSong << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());*/
+		f.appendText(oss.str());
 		
 		if (bestCountForSong > bestCount) {
 			bestCount = bestCountForSong;
@@ -384,10 +387,15 @@ RecognizedJingle FingerprintLive::calculateBestMatch() {
 	std::string jingleTitle = "";
 
 	offset1 = offset2;
-	offset2 = offset3;
-	offset3 = bestOffset;
+	//offset2 = offset3;
+	offset2 = bestOffset;
 
-	if (bestCount > thresholdMatchCons && bestOffset > 0 && ((offset3 - offset1) == frameAnalysisAccumulator * 2)) {
+	oss.str(std::string());
+	oss << std::endl;
+	std::string var = oss.str();
+	f.appendText(oss.str());
+
+	if (bestCount > thresholdMatchCons /*&& bestOffset > 0 && ((offset2 - offset1) == frameAnalysisAccumulator * 1)*/) {
 		
 		auto it = jingleMap.find(bestSong);
 		if (it != jingleMap.end()) {
@@ -396,11 +404,11 @@ RecognizedJingle FingerprintLive::calculateBestMatch() {
 			remaining = duration - nSamplesOffset;
 			jingleTitle = it->second.second;
 		}
-		/*std::ostringstream oss;
-		oss << "bestsong: " << bestSong << "Song name: " << jingleMap.find(bestSong)->second.second 
-			<< " duration: " << jingleMap.find(bestSong)->second.first << " SamplesRemaining:"<< sampleRemainings << std::endl;
+		oss.str(std::string());
+		oss << "bestJingle: " << bestSong << " Jingle name: " << jingleMap.find(bestSong)->second.second
+			<< " duration: " << jingleMap.find(bestSong)->second.first << " bestOffset:"<< bestOffset << std::endl << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());*/
+		f.appendText(oss.str());
 	}
 	RecognizedJingle rj(duration, nSamplesOffset, remaining, bestSong, jingleTitle);
 	return rj;

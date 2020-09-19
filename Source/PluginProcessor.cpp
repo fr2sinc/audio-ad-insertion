@@ -266,7 +266,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 //	if (channel == 0) {
 //		//fingerprint
 //		for (int sample = 0; sample < bufferLength; ++sample) {			
-//				int localSamples = fprintLive.pushSampleIntoSongMatchFifo(bufferData[sample]);
+//				fprintLive.getRecognitionWithOverlap(bufferData[sample]);
 //		}
 //	}
 //}

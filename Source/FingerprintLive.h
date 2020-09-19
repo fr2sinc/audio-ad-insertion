@@ -27,8 +27,8 @@ public:
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
 		//critical threshold, below this threshold the matches are correct but may belong to other moments of the jingle
-		thresholdMatchCons = 5,
-		frameAnalysisAccumulator = 128,
+		thresholdMatchCons = 4,
+		frameAnalysisAccumulator = 256,
 	};
 
 	FingerprintLive();
