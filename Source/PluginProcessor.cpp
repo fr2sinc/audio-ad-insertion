@@ -218,7 +218,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 			//fingerprint
 			for (int sample = 0; sample < bufferLength; ++sample) {
 
-				RecognizedJingle localRJ = fprintLive.getRecognitionWithOverlap(bufferData[sample]);
+				RecognizedJingle localRJ = fprintLive.getRecognitionWithMatchMapOverlap(bufferData[sample]);
 				//handle negative case, it's a critical case
 				if (localRJ.getRemainingInSamples() > 0) {
 					fState = fOn;
@@ -245,7 +245,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 			//fingerprint
 			for (int sample = 0; sample < bufferLength; ++sample) {
 
-				RecognizedJingle localRJ = fprintLive.getRecognitionWithOverlap(bufferData[sample]);
+				RecognizedJingle localRJ = fprintLive.getRecognitionWithMatchMapOverlap(bufferData[sample]);
 				
 				if (localRJ.getOffsetInSamples() > 0) {
 					samplesAdRemaining = delayInSamples - localRJ.getOffsetInSamples();

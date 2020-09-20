@@ -26,24 +26,27 @@ public:
 	enum {
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
-		//critical threshold, below this threshold the matches are correct but may belong to other moments of the jingle
+		//più aumenti frameAnalysisAccumulator e più match spuri ci saranno, quindi di conseguenza la threshold deve essere più alta
 		thresholdMatchCons = 4,
-		frameAnalysisAccumulator = 256,
+		frameAnalysisAccumulator = 128,
+		matchMapFrame = 2,
 	};
 
 	FingerprintLive();
 
 	~FingerprintLive();
 
-	void matchHashes(int currentTime);
+	void matchHashes(int currentTime, int endMatchMap, int endMatchMap1);
 
 	void loadHashes(int songId, bool isMatching, juce::String input_file);
 
 	//std::pair<int, std::string> pushSampleIntoSongMatchFifoOverlap(const float & sample);
 
-	RecognizedJingle getRecognitionWithOverlap(const float & sample);
-
 	//std::pair<int, std::string> pushSampleIntoSongMatchFifo(const float & sample);
+
+	RecognizedJingle getRecognitionWithOverlap(const float & sample);	
+
+	RecognizedJingle getRecognitionWithMatchMapOverlap(const float & sample);
 
 	void setupFingerprintLive(double samplerate, double secToAnalyze);
 
@@ -58,7 +61,7 @@ private:
 
 	void writePeaksOnDisk(int & t, String & filename, int & pt1, int & pt2, int & pt3, int & pt4, long long & h);
 	
-	RecognizedJingle calculateBestMatch();
+	RecognizedJingle calculateBestMatch(std::unordered_map<int, std::unordered_map<int, int>>& matchMapReceived);
 
 	void writeAudioFileOnDisk(const juce::AudioBuffer<float>& tmpBuffer);
 
@@ -72,6 +75,7 @@ private:
 	double secondsToAnalyze;
 	std::unordered_map<long long, std::list<DataPoint>> hashMap;	// Map<Hash, List<DataPoint>>
 	std::unordered_map<int, std::unordered_map<int, int>> matchMap; // Map<SongId, Map<Offset, Count>>
+	std::unordered_map<int, std::unordered_map<int, int>> matchMap2; // Map<SongId, Map<Offset, Count>>
 
 	//analysis bands
 	int freqbandWidth = 40;
@@ -99,5 +103,8 @@ private:
 	int offset2 = 0;
 	int offset3 = 0;
 
+
+	int circularCounter = 0;
+	bool firstFillMap = true;
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FingerprintLive)
 };
