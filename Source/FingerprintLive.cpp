@@ -346,15 +346,15 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 	int bestSong = -1;
 	int bestOffset = -1;
 
-	std::ostringstream oss;
-	//juce::Time::getCurrentTime().formatted("%Y.%m.%d_%H.%M.%S") //user format
-	oss << "audio-ad-insertion-data\\logFrameAnalysisWindow\\" << juce::Time::getCurrentTime().toString(true, false) << ".txt";
+	//std::ostringstream oss;
+	////juce::Time::getCurrentTime().formatted("%Y.%m.%d_%H.%M.%S") //user format
+	//oss << "audio-ad-insertion-data\\logFrameAnalysisWindow\\" << juce::Time::getCurrentTime().toString(true, false) << ".txt";
 
-	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(oss.str());
-	/*if (f.exists()) {
-		f.deleteFile();
-	}*/
-	auto result = f.create();
+	//File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(oss.str());
+	///*if (f.exists()) {
+	//	f.deleteFile();
+	//}*/
+	//auto result = f.create();
 
 	int bestCountForSong = 0;
 	int bestOffsetForSong = 0;
@@ -376,10 +376,10 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 			}
 		}
 
-		oss.str(std::string());
+		/*oss.str(std::string());
 		oss << "Jingle: " << id << " bestCount: " << bestCountForSong << " bestOffset: " << bestOffsetForSong << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());
+		f.appendText(oss.str());*/
 		
 		if (bestCountForSong > bestCount) {
 			bestCount = bestCountForSong;
@@ -399,10 +399,10 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 	offset2 = offset3;
 	offset2 = bestOffset;
 
-	oss.str(std::string());
+	/*oss.str(std::string());
 	oss << std::endl;
 	std::string var = oss.str();
-	f.appendText(oss.str());
+	f.appendText(oss.str());*/
 
 	if (bestCount > thresholdMatchCons /*&& bestOffset > 0 && ((offset2 - offset1) == frameAnalysisAccumulator * 1)*/) {
 		
@@ -420,11 +420,11 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 		circularCounter = 0;
 		//-----------------------------
 
-		oss.str(std::string());
+		/*oss.str(std::string());
 		oss << "bestJingle: " << bestSong << " Jingle name: " << jingleMap.find(bestSong)->second.second
 			<< " duration: " << jingleMap.find(bestSong)->second.first << " bestOffset:"<< bestOffset << std::endl << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());
+		f.appendText(oss.str());*/
 	}
 	RecognizedJingle rj(duration, nSamplesOffset, remaining, bestSong, jingleTitle);
 	return rj;
