@@ -153,13 +153,9 @@ void SimpleSignalGeneratorAudioProcessor::processBlock (juce::AudioBuffer<float>
 			monoBuffer[sample] = amplitude * sin(2 * (double)M_PI * frequency * time + phase);
 			time += deltaTime;
 		}
-		//from mono to stereo
+		//from mono to stereo		
 		for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
-			float* out = buffer.getWritePointer(channel);
-
-			for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
-				out[sample] = monoBuffer[sample];
-			}
+			buffer.copyFrom(channel, 0, monoBuffer, buffer.getNumSamples());
 		}
 	}	
 	delete[] monoBuffer;
