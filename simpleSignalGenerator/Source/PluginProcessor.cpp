@@ -141,13 +141,13 @@ void SimpleSignalGeneratorAudioProcessor::processBlock (juce::AudioBuffer<float>
 
 	if (time >= std::numeric_limits<float>::max()) 
 		time = 0.0;	
-
-	float *monoBuffer = new float[buffer.getNumSamples()];
-
+	
 	if (mute) {
 		buffer.clear();
 	}
 	else {
+		float *monoBuffer = new float[buffer.getNumSamples()];
+
 		//generate mono sin wave
 		for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
 			monoBuffer[sample] = amplitude * sin(2 * (double)M_PI * frequency * time + phase);
@@ -157,8 +157,8 @@ void SimpleSignalGeneratorAudioProcessor::processBlock (juce::AudioBuffer<float>
 		for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
 			buffer.copyFrom(channel, 0, monoBuffer, buffer.getNumSamples());
 		}
+		delete[] monoBuffer;
 	}	
-	delete[] monoBuffer;
 }
 
 //==============================================================================
