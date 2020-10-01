@@ -37,7 +37,7 @@ private:
 	void timerCallback() override;
 
 	juce::Label curJingleLabel;
-
+	Label boxLabel;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessorEditor)
 };

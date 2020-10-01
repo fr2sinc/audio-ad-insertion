@@ -201,7 +201,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		//injection
 		transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
 		//fprint offline
-		//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);
+		//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);		
 	}
 
 	mWritePosition += bufferLength;
@@ -250,6 +250,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 				if (localRJ.getOffsetInSamples() > 0) {
 					samplesAdRemaining = delayInSamples - localRJ.getOffsetInSamples();
 					second_jingle_duration = localRJ.getDurationInSamples();
+					samplesRemaining = samplesAdRemaining + second_jingle_duration;
 					curJingle = localRJ.getTitle();
 					fState = fMiddleAtivated;
 				}
@@ -311,9 +312,9 @@ void FFTimplAudioProcessor::changeFprintState(const int bufferLength) {
 		//meglio anticipare che posticipare
 		if (samplesAdRemaining - bufferLength > 0) {
 			samplesAdRemaining -= bufferLength;
+			samplesRemaining -= bufferLength;
 		}
-		else { //<=0
-			curJingle = "";
+		else { //<=0			
 			fState = fWaitSecondJingle;
 			toneState = Off;
 			samplesAdRemaining = 0;
@@ -324,11 +325,13 @@ void FFTimplAudioProcessor::changeFprintState(const int bufferLength) {
 		//meglio anticipare che posticipare
 		if (second_jingle_duration - bufferLength > 0) {
 			second_jingle_duration -= bufferLength;
+			samplesRemaining -= bufferLength;
 		}
 		else { //<=0
 			curJingle = "";
 			fState = fOff;//può riprendere a riconoscere il primo jingle			
 			second_jingle_duration = 0;
+			samplesRemaining = 0;
 		}
 	}
 }
@@ -366,12 +369,12 @@ void FFTimplAudioProcessor::fillDelayBuffer(int channel, const int bufferLength,
 
 	//copy data from main buffer to delay buffer
 	if (delayBufferLength > bufferLength + mWritePosition) {
-		mDelayBuffer.copyFromWithRamp(channel, mWritePosition, bufferData, bufferLength, 0.8, 0.8);
+		mDelayBuffer.copyFrom(channel, mWritePosition, bufferData, bufferLength);
 	}
 	else {
 		const int bufferRemaining = delayBufferLength - mWritePosition;
-		mDelayBuffer.copyFromWithRamp(channel, mWritePosition, bufferData, bufferRemaining, 0.8, 0.8);
-		mDelayBuffer.copyFromWithRamp(channel, 0, bufferData + bufferRemaining, bufferLength - bufferRemaining, 0.8, 0.8);
+		mDelayBuffer.copyFrom(channel, mWritePosition, bufferData, bufferRemaining);
+		mDelayBuffer.copyFrom(channel, 0, bufferData + bufferRemaining, bufferLength - bufferRemaining);
 	}
 }
 

@@ -194,7 +194,7 @@ void FingerprintLive::loadHashes(int songId, bool isMatching, juce::String input
 			//sta caricando in memoria gli hash di tutti i jingle
 			std::list<DataPoint> listPoints;
 
-			if (hashMap.find(h) == hashMap.end()) { //se non esiste quell'hash nella hasmap
+			if (hashMap.find(h) == hashMap.end()) { //se non esiste quell'hash nella hashmap
 
 				DataPoint point = DataPoint(songId, t);
 				listPoints.push_back(point);

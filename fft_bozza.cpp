@@ -565,3 +565,12 @@ if (toneOn) {
 				
 		}
 	}
+
+
+smoothValue.reset(sampleRate, 5);
+smoothValue.setTargetValue(0.5);
+
+if (samplesAdRemaining <= (mSampleRate * 5) && samplesRemaining != 0)
+			auto x = smoothValue.getNextValue();
+			smoothValue.applyGain(buffer, buffer.getNumSamples());
+			//buffer.applyGain(0, buffer.getNumSamples(), smoothValue.getNextValue());
