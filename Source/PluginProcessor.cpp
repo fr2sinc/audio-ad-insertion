@@ -277,7 +277,7 @@ void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	
 	//calculate FFT only in one channel, if I need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
 	if (channel == 0) {
 
-		bool fftResult = gAnalyzer.checkDetectDTMF();
+		bool fftResult = gAnalyzer.checkGoertzelFrequencies();
 
 		if (fftResult && timeCounter > 150) {
 			newToneState = On;
@@ -386,7 +386,6 @@ void FFTimplAudioProcessor::getFromDelayBuffer(AudioBuffer<float>& buffer, int c
 	const int readPosition = static_cast<int> (delayBufferLength + mWritePosition - delayInSamples) % delayBufferLength;
 
 	if (delayBufferLength > bufferLength + readPosition) {
-
 		buffer.copyFrom(channel, 0, delayBufferData + readPosition, bufferLength);
 	}
 	else {

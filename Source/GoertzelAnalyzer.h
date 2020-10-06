@@ -22,7 +22,7 @@ class GoertzelAnalyzer
 {
 public:
 	GoertzelAnalyzer(): forwardFFT(fftOrder),
-		window(GoertzelFFTSize, juce::dsp::WindowingFunction<float>::hann) {
+		window(GoertzelSize, juce::dsp::WindowingFunction<float>::hann) {
     }
 
     ~GoertzelAnalyzer() {
@@ -30,14 +30,13 @@ public:
 
 	void pushSampleIntoFifo(const float& sample) {
 
-		if (fifoIndex == GoertzelFFTSize) {
+		if (fifoIndex == GoertzelSize) {
 			juce::zeromem(fftData.data(), sizeof(fftData));
 			memcpy(fftData.data(), fifo.data(), sizeof(fifo));
-			juce::zeromem(dtmf_levels, sizeof(dtmf_levels));			
+			juce::zeromem(fq_levels, sizeof(fq_levels));
+			window.multiplyWithWindowingTable(fftData.data(), GoertzelSize);
 
-			window.multiplyWithWindowingTable(fftData.data(), GoertzelFFTSize);
-
-			detectDTMF(GoertzelFFTSize, fftData.data());
+			detectGoertzelFrequencies(GoertzelSize, fftData.data());
 			fifoIndex = 0;
 		}
 		fifo[fifoIndex] = sample;
@@ -72,33 +71,23 @@ public:
 		return out * 1000;
 	}
 
-	void detectDTMF(int size, float const *data) {
-
-		for (int i = 0; i < dtmfsSize; i++) {
-			dtmf_levels[i] = goertzel(size, data, m_sampleRate, dtmf_fq[i]);
+	void detectGoertzelFrequencies(int size, float const *data) {
+		for (int i = 0; i < fqSize; i++) {
+			fq_levels[i] = goertzel(size, data, m_sampleRate, fq[i]);
 		}
 	}
 
-	bool checkDetectDTMF() {
-
-		bool firstTone = false;
-		bool secondTone = false;
-
-		//to find the simultaneous presence of two frequencies in one tone
-		for (int i = 0; i < dtmfsSize; i++) {
-			//DBG(dtmf_levels[i]);
-			if (dtmf_levels[i] > 350.0)//threshold of activation
-				firstTone = true;
+	bool checkGoertzelFrequencies() {
+		float threshold = 350.0;
+		if(fqSize == 1){
+			if (fq_levels[0] > threshold)
+				return true;
 		}
-		//for (int i = dtmfsSize / 2; i < dtmfsSize ; i++) {
-		//	//DBG(dtmf_levels[i]);
-		//	if (dtmf_levels[i] > 350.0)
-		//		secondTone = true;
-		//}
-		//check secondTone if you need a two frequency match
-		if (firstTone)
-			return true;
-		
+		//find simultaneous presence of two frequencies in one tone
+		for (int i = 0; i < fqSize/2 + 1; i++) {			
+			if (fq_levels[i] > threshold && fq_levels[i + fqSize/2] > threshold)//threshold of activation
+				return true;
+		}		
 		return false;
 	}
 
@@ -138,20 +127,38 @@ public:
 			return false;
 	}
 
+	//not used
+	//N is number of time points and fft points
+	void dft(float *in, float *out, int N) {
+
+		for (int i = 0, k = 0; k < N; i += 2, k++) {
+			out[i] = out[i + 1] = 0.0;
+
+			for (int n = 0; n < N; n++) {
+				out[i] += in[n] * cos(k*n*PI2 / N);
+				out[i + 1] -= in[n] * sin(k*n*PI2 / N);
+			}
+			out[i] /= N; out[i + 1] /= N;
+		}
+	}
+
 	enum {
+		//FFT
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
-		dtmfsSize = 1,
-		GoertzelFFTOrder = 12,
-		GoertzelFFTSize = 1 << GoertzelFFTOrder,
-	};
 
+		//Goertzel
+		//fqSize può essere 1 o un numero pari, se è un numero dispari, l'ultima frequenza non è considerata
+		fqSize = 1,
+		GoertzelOrder = 12,
+		GoertzelSize = 1 << GoertzelOrder,
+	};	
 
 private:
 	juce::dsp::FFT forwardFFT;                      
 	juce::dsp::WindowingFunction<float> window;     
-	std::array<float, GoertzelFFTSize> fifo;
-	std::array<float, GoertzelFFTSize * 2> fftData;   
+	std::array<float, GoertzelSize> fifo;
+	std::array<float, GoertzelSize * 2> fftData;   
 	int fifoIndex = 0;   
 
 	double m_sampleRate = 44100.0;
@@ -159,9 +166,11 @@ private:
 	//48000 / 4096 (2^12) = bins da 11.71 HZ
 	//quindi goertzel settato sul riconoscimento di 16HZ, riconoscerà nell'intorno di +/- 5.85
 
-	const float  PI2 = M_PI * 2;
-	const int dtmf_fq[dtmfsSize] = {16/*, 697, 770, 852, 941, 1209, 1336, 1477, 1633*/};
-	float dtmf_levels[dtmfsSize] = {};
+	const float  PI2 = M_PI * 2;	
+	//DTMF
+	/*697, 770, 852, 941, 1209, 1336, 1477, 1633*/
+	const int fq[fqSize] = {16};
+	float fq_levels[fqSize] = {};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GoertzelAnalyzer)
 };

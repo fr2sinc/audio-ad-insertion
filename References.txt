@@ -1,3 +1,6 @@
+//delay plugin Daniel Walz
+https://github.com/ffAudio/ffTapeDelay
+
 https://www.embedded.com/single-tone-detection-with-the-goertzel-algorithm/
 
 https://en.wikipedia.org/wiki/Dual-tone_multi-frequency_signaling
