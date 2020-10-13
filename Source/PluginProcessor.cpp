@@ -23,32 +23,19 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 #endif
 {
 	formatManager.registerBasicFormats();       // [1]	
-	initializeFprint(fprintLive);
-	//JsonUtility::writeHashMap(fprintLive.getHashMap());
-	//JsonUtility::writeJingleMap(fprintLive.getJingleMap());
-	JsonUtility::readHashMap(fprintLive.getHashMap());
-	JsonUtility::readJingleMap(fprintLive.getJingleMap());
-
+	initializeFprint();	
 }
 
-void FFTimplAudioProcessor::initializeFprint(FingerprintLive& fprint) {
+void FFTimplAudioProcessor::initializeFprint() {
 
 	//first of all setup fingerprint
 	//set your host samplerate manually
-	fprint.setupFingerprintLive(48000, 0.5);
-
-	//---------------------------------------------------------
-	/*File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");
-	DirectoryIterator dir_iterator(f, false);
-
-	int songId = 0;
-	while (dir_iterator.next()) {
-
-		auto file = File(dir_iterator.getFile());
-		fprint.loadHashes(songId, false, file.getFullPathName());
-		songId++;
-	}*/
-	//---------------------------------------------------------
+	fprintLive.setupFingerprintLive(48000, 0.5);
+	JsonUtility::readHashMap(fprintLive.getHashMap());
+	JsonUtility::readJingleMap(fprintLive.getJingleMap());
+	fprint.setupFingerprint(48000, 10/*seconds of audio to analyze*/);
+	JsonUtility::readHashMap(fprint.getHashMap());
+	JsonUtility::readJingleMap(fprint.getJingleMap());
 }
 
 FFTimplAudioProcessor::~FFTimplAudioProcessor()
@@ -201,7 +188,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		//injection
 		transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
 		//fprint offline
-		//fprint.pushSamplesIntoSongFifo(buffer, bufferLength);		
+		//fprint.pushSampleIntoSongMatchFifo(buffer, bufferLength);
 	}
 
 	mWritePosition += bufferLength;
@@ -213,18 +200,19 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 	auto* bufferData = buffer.getReadPointer(0);
 	if (channel == 0) {
 
-		if (fState == fOff) {
-
-			//fingerprint
+		if (fState == fSearchingJ1) {
+			
 			for (int sample = 0; sample < bufferLength; ++sample) {
 
 				RecognizedJingle localRJ = fprintLive.getRecognitionWithMatchMapOverlap(bufferData[sample]);
-				//handle negative case, it's a critical case
+				
 				if (localRJ.getRemainingInSamples() > 0) {
-					fState = fOn;
-					//set current recognition
-					samplesRemaining = delayInSamples + localRJ.getRemainingInSamples() - (bufferLength - sample);
-					curJingle = localRJ.getTitle();
+					fState = fRecognizedJ1;
+					injState1 = waitJ1End;
+					
+					samplesRemainingDelayedJ1 = delayInSamples + localRJ.getRemainingInSamples() - (bufferLength - sample);
+					j1SamplesRemaining = localRJ.getRemainingInSamples() - (bufferLength - sample);
+					curJingle1 = localRJ.getTitle();
 
 					File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
 					auto* reader = formatManager.createReaderFor(file);
@@ -240,19 +228,23 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 
 			}
 		}
-		else if (fState == fMiddle) {
-
-			//fingerprint
+		else if (fState == fSearchingJ2) {
+			
 			for (int sample = 0; sample < bufferLength; ++sample) {
 
 				RecognizedJingle localRJ = fprintLive.getRecognitionWithMatchMapOverlap(bufferData[sample]);
 				
 				if (localRJ.getOffsetInSamples() > 0) {
+					fState = fRecognizedJ2;
+					injState2 = waitAdEnd;
+
 					samplesAdRemaining = delayInSamples - localRJ.getOffsetInSamples();
 					second_jingle_duration = localRJ.getDurationInSamples();
-					samplesRemaining = samplesAdRemaining + second_jingle_duration;
-					curJingle = localRJ.getTitle();
-					fState = fMiddleAtivated;
+					samplesRemainingDelayedJ2 = samplesAdRemaining + second_jingle_duration;
+					j2SamplesRemaining = localRJ.getRemainingInSamples() - (bufferLength - sample);
+
+					curJingle2 = localRJ.getTitle();	
+					break;
 				}
 
 			}
@@ -296,44 +288,59 @@ void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	
 
 void FFTimplAudioProcessor::changeFprintState(const int bufferLength) {
 
-	if (fState == fOn) {
+	if (fState == fRecognizedJ1) {
 		//meglio anticipare che posticipare
-		if (samplesRemaining - bufferLength > 0) {
-			samplesRemaining -= bufferLength;
+		if (j1SamplesRemaining - bufferLength > 0) {
+			j1SamplesRemaining -= bufferLength;
 		}
-		else { //<=0
-			curJingle = "";
-			fState = fMiddle;
-			toneState = On;
-			samplesRemaining = 0;
+		else { 			
+			fState = fSearchingJ2;
+			j1SamplesRemaining = 0;			
 		}
 	}
-	else if (fState == fMiddleAtivated) {
-		//meglio anticipare che posticipare
+	else if (fState == fRecognizedJ2) {		
+		if (j2SamplesRemaining - bufferLength > 0) {
+			j2SamplesRemaining -= bufferLength;			
+		}
+		else { 		
+			fState = fSearchingJ1;			
+		}
+	}
+		
+	if (injState1 == waitJ1End) {		
+		if (samplesRemainingDelayedJ1 - bufferLength > 0) {
+			samplesRemainingDelayedJ1 -= bufferLength;
+		}
+		else {		
+			toneState = On;
+			samplesRemainingDelayedJ1 = 0;
+			injState1 = notActiveInj1;
+		}
+	}
+
+	if (injState2 == waitAdEnd) {
 		if (samplesAdRemaining - bufferLength > 0) {
 			samplesAdRemaining -= bufferLength;
-			samplesRemaining -= bufferLength;
+			samplesRemainingDelayedJ2 -= bufferLength;
 		}
-		else { //<=0			
-			fState = fWaitSecondJingle;
+		else {
 			toneState = Off;
 			samplesAdRemaining = 0;
+			injState2 = waitJ2;
 		}
 	}
-	//accertati se questo debba essere fatto subito o al ciclo successivo di processblock
-	else if (fState == fWaitSecondJingle) {
-		//meglio anticipare che posticipare
+	else if (injState2 == waitJ2){
 		if (second_jingle_duration - bufferLength > 0) {
 			second_jingle_duration -= bufferLength;
-			samplesRemaining -= bufferLength;
+			samplesRemainingDelayedJ2 -= bufferLength;
 		}
-		else { //<=0
-			curJingle = "";
-			fState = fOff;//può riprendere a riconoscere il primo jingle			
+		else {			
 			second_jingle_duration = 0;
-			samplesRemaining = 0;
+			samplesRemainingDelayedJ2 = 0;
+			injState2 = notActiveInj2;
 		}
 	}
+
 }
 
 void FFTimplAudioProcessor::changeToneState() {

@@ -279,7 +279,7 @@ int Fingerprint::calculateBestMatch() {
 	}
 	f.create();
 
-	for (int id = 0; id < nrSongs; id++) {
+	for (int id = 0; id < jingleMap.size(); id++) {
 
 		int bestCountForSong = 0;
 
@@ -334,14 +334,20 @@ void Fingerprint::setupFingerprint(double samplerate, double secToAnalyze) {
 	secondsToAnalyze = secToAnalyze;
 	transportSource.prepareToPlay(fftSize, m_sampleRate);
 	songMatchFifo.setSize(1, (int)(m_sampleRate * secToAnalyze));
-	//songMatchFifo.setSize(1, (int)(512));
-
 }
 
 long long Fingerprint::hash(long long p1, long long p2, long long p3, long long p4) {
 	return (p4 - (p4 % FUZ_FACTOR)) * 100000000 + (p3 - (p3 % FUZ_FACTOR))
 		* 100000 + (p2 - (p2 % FUZ_FACTOR)) * 100
 		+ (p1 - (p1 % FUZ_FACTOR));
+}
+
+std::unordered_map<long long, std::list<DataPoint>>& Fingerprint::getHashMap() {
+	return hashMap;
+}
+
+std::unordered_map<int, std::pair<int, std::string>>& Fingerprint::getJingleMap() {
+	return jingleMap;
 }
 
 //generateHashes() old, not used

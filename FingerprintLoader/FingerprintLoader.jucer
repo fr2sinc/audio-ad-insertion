@@ -4,6 +4,10 @@
               addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="KzmzD4" name="FingerprintLoader">
     <GROUP id="{118845BD-7444-EB6D-1990-E7B4BEBC2BB1}" name="Source">
+      <FILE id="rDfv2T" name="RecognizedJingle.cpp" compile="1" resource="0"
+            file="../Source/RecognizedJingle.cpp"/>
+      <FILE id="KjNJsA" name="RecognizedJingle.h" compile="0" resource="0"
+            file="../Source/RecognizedJingle.h"/>
       <FILE id="BEXPfz" name="FingerprintLive.cpp" compile="1" resource="0"
             file="../Source/FingerprintLive.cpp"/>
       <FILE id="etJgIu" name="FingerprintLive.h" compile="0" resource="0"

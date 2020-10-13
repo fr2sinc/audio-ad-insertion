@@ -9,7 +9,7 @@
 */
 
 #include "FingerprintLive.h"
-
+//#define LOG
 //==============================================================================
 FingerprintLive::FingerprintLive() : forwardFFT(fftOrder),
 window(fftSize, juce::dsp::WindowingFunction<float>::hann), m_sampleRate(44100.0), secondsToAnalyze(10)
@@ -143,8 +143,7 @@ void FingerprintLive::loadHashes(int songId, bool isMatching, juce::String input
 	//leggi tutto il file
 	int samples = transportSource.getTotalLength();
 	jingleMap.insert(std::pair<int, std::pair<int, std::string>>(songId, std::pair<int, std::string>(samples, filename.toStdString())));
-
-	//int samples = juce::jmin((int)(m_sampleRate * secondsToAnalyze), (int)reader->lengthInSamples);	
+	
 	std::array<float, 2 * fftSize> outBuffer;
 
 	AudioBuffer<float> tmp;
@@ -154,7 +153,7 @@ void FingerprintLive::loadHashes(int songId, bool isMatching, juce::String input
 	for (int t = 0; t < samples / fftSize; t++) {
 		transportSource.getNextAudioBlock(AudioSourceChannelInfo(tmp));
 		memcpy(outBuffer.data(), tmp.getReadPointer(0), fftSize * sizeof(float));
-		//writeWaveFormOnDisk(t, songId, fftSize, outBuffer.data());
+		//writeWaveFormOnDisk(t, filename, fftSize, outBuffer.data());
 
 		window.multiplyWithWindowingTable(outBuffer.data(), fftSize);
 		forwardFFT.performFrequencyOnlyForwardTransform(outBuffer.data()); //FFT computation
@@ -224,10 +223,10 @@ void FingerprintLive::resampleAudioBuffer(AudioBuffer<float>& buffer, unsigned i
 	}
 }
 
-void FingerprintLive::writeWaveFormOnDisk(int t, int idSong, int currentSize, float* outBuffer) {
+void FingerprintLive::writeWaveFormOnDisk(int t, juce::String filename, int currentSize, float* outBuffer) {
 	//write waveform on disk
 	std::stringstream sstm;
-	sstm << "audio-ad-insertion-data\\waveform" << idSong << ".txt";
+	sstm << "audio-ad-insertion-data\\waveform\\waveform_" << filename << ".txt";
 	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(sstm.str());
 	f.create();
 	if (t == 0) {
@@ -245,7 +244,7 @@ void FingerprintLive::writeWaveFormOnDisk(int t, int idSong, int currentSize, fl
 
 void FingerprintLive::writePeaksOnDisk(int& t, String& filename, int& pt1, int& pt2, int& pt3, int& pt4, long long& h) {
 	std::stringstream sstm;
-	sstm << "audio-ad-insertion-data\\peaks-songId" << filename << ".txt";
+	sstm << "audio-ad-insertion-data\\peaks\\peaks_" << filename << ".txt";
 	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(sstm.str());
 	f.create();
 	if (t == 0) {
@@ -346,15 +345,18 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 	int bestSong = -1;
 	int bestOffset = -1;
 
-	//std::ostringstream oss;
-	////juce::Time::getCurrentTime().formatted("%Y.%m.%d_%H.%M.%S") //user format
-	//oss << "audio-ad-insertion-data\\logFrameAnalysisWindow\\" << juce::Time::getCurrentTime().toString(true, false) << ".txt";
 
-	//File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(oss.str());
-	///*if (f.exists()) {
-	//	f.deleteFile();
-	//}*/
-	//auto result = f.create();
+#ifdef LOG
+	std::ostringstream oss;
+	//juce::Time::getCurrentTime().formatted("%Y.%m.%d_%H.%M.%S") //user format
+	oss << "audio-ad-insertion-data\\logFrameAnalysisWindow\\" << juce::Time::getCurrentTime().toString(true, false) << ".txt";
+
+	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(oss.str());
+	/*if (f.exists()) {
+		f.deleteFile();
+	}*/
+	auto result = f.create();
+#endif
 
 	int bestCountForSong = 0;
 	int bestOffsetForSong = 0;
@@ -376,11 +378,12 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 			}
 		}
 
-		/*oss.str(std::string());
+#ifdef LOG
+		oss.str(std::string());
 		oss << "Jingle: " << id << " bestCount: " << bestCountForSong << " bestOffset: " << bestOffsetForSong << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());*/
-		
+		f.appendText(oss.str());
+#endif		
 		if (bestCountForSong > bestCount) {
 			bestCount = bestCountForSong;
 			bestSong = id;
@@ -398,12 +401,12 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 	offset1 = offset2;
 	offset2 = offset3;
 	offset2 = bestOffset;
-
-	/*oss.str(std::string());
+#ifdef LOG
+	oss.str(std::string());
 	oss << std::endl;
 	std::string var = oss.str();
-	f.appendText(oss.str());*/
-
+	f.appendText(oss.str());
+#endif	
 	if (bestCount > thresholdMatchCons /*&& bestOffset > 0 && ((offset2 - offset1) == frameAnalysisAccumulator * 1)*/) {
 		
 		auto it = jingleMap.find(bestSong);
@@ -419,12 +422,13 @@ RecognizedJingle FingerprintLive::calculateBestMatch(std::unordered_map<int, std
 		firstFillMap = true;
 		circularCounter = 0;
 		//-----------------------------
-
-		/*oss.str(std::string());
+#ifdef LOG
+		oss.str(std::string());
 		oss << "bestJingle: " << bestSong << " Jingle name: " << jingleMap.find(bestSong)->second.second
 			<< " duration: " << jingleMap.find(bestSong)->second.first << " bestOffset:"<< bestOffset << std::endl << std::endl;
 		std::string var = oss.str();
-		f.appendText(oss.str());*/
+		f.appendText(oss.str());
+#endif	
 	}
 	RecognizedJingle rj(duration, nSamplesOffset, remaining, bestSong, jingleTitle);
 	return rj;

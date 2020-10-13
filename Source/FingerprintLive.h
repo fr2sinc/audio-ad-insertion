@@ -13,10 +13,10 @@
 #include <JuceHeader.h>
 #include <unordered_map> 
 #include "DataPoint.h"
+#include "RecognizedJingle.h"
 #include <iostream>
 #include <fstream>
 #include <thread>
-#include "RecognizedJingle.h"
 //==============================================================================
 /*
 */
@@ -27,7 +27,7 @@ public:
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
 		//più aumenti frameAnalysisAccumulator e più match spuri ci saranno, quindi di conseguenza la threshold deve essere più alta
-		thresholdMatchCons = 4,
+		thresholdMatchCons = 5,
 		frameAnalysisAccumulator = 128,
 		matchMapFrame = 2,
 	};
@@ -57,7 +57,7 @@ public:
 private:
 	void resampleAudioBuffer(AudioBuffer<float>& buffer, unsigned int & numChannels, int64 & samples, double & sampleRateIn, double & sampleRateOut);
 
-	void writeWaveFormOnDisk(int t, int idSong, int currentSize, float * outBuffer);
+	void writeWaveFormOnDisk(int t, juce::String filename, int currentSize, float * outBuffer);
 
 	void writePeaksOnDisk(int & t, String & filename, int & pt1, int & pt2, int & pt3, int & pt4, long long & h);
 	

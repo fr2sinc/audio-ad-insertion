@@ -39,6 +39,10 @@ public:
 
 	void setupFingerprint(double samplerate, double secToAnalyze);
 
+	std::unordered_map<long long, std::list<DataPoint>>& getHashMap();
+
+	std::unordered_map<int, std::pair<int, std::string>>& getJingleMap();
+
 private:
 	void resampleAudioBuffer(AudioBuffer<float>& buffer, unsigned int & numChannels, int64 & samples, double & sampleRateIn, double & sampleRateOut);
 
@@ -60,7 +64,8 @@ private:
 	double secondsToAnalyze;
 	std::unordered_map<long long, std::list<DataPoint>> hashMap;	// Map<Hash, List<DataPoint>>
 	std::unordered_map<int, std::unordered_map<int, int>> matchMap; // Map<SongId, Map<Offset, Count>>
-	
+	std::unordered_map<int, std::pair<int, std::string>> jingleMap;	// Map<songId, (lengthInSamples, jingle name)>
+
 	//analysis bands
 	int freqbandWidth = 40;
 	int freqbandWidth2 = 80;
@@ -76,7 +81,7 @@ private:
 	//needed to maintain a buffer state
 	juce::AudioBuffer<float> songMatchFifo;
 	juce::AudioBuffer<float> songMatchFifoCopy;
-	int songMatchFifoIndex = 0;
+	int songMatchFifoIndex = 480;
 	int nrSongs = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Fingerprint)

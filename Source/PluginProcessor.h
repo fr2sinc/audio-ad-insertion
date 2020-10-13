@@ -27,16 +27,28 @@ public:
 
 	enum fPrintState
 	{
-		fOn,
-		fOff,
-		fMiddle,
-		fMiddleAtivated,
-		fWaitSecondJingle,
+		fSearchingJ1,
+		fRecognizedJ1,
+		fSearchingJ2,
+		fRecognizedJ2
+	};
+
+	enum injectionState1
+	{
+		waitJ1End,
+		notActiveInj1
+	};
+
+	enum injectionState2
+	{
+		waitAdEnd,
+		waitJ2,
+		notActiveInj2
 	};
 
 	//==============================================================================
 	FFTimplAudioProcessor();
-	void initializeFprint(FingerprintLive & fprint);
+	void initializeFprint();
 	~FFTimplAudioProcessor() override;
 
 	//==============================================================================
@@ -87,8 +99,14 @@ public:
 	void setStateInformation(const void* data, int sizeInBytes) override;
 	
 	float mDelay{ 0.0 };	
-	juce::String curJingle;
-	int samplesRemaining = 0;
+	juce::String curJingle1;
+	juce::String curJingle2;
+	int samplesRemainingDelayedJ1 = 0;
+	int samplesRemainingDelayedJ2 = 0;
+
+	int j1SamplesRemaining = 0;
+	int j2SamplesRemaining = 0;
+
 	int samplesAdRemaining = 0;
 	int second_jingle_duration = 0;
 	int mSampleRate{ 0 };
@@ -110,7 +128,9 @@ private:
 	GoertzelAnalyzer gAnalyzer;
 	Fingerprint fprint;	
 	FingerprintLive fprintLive;
-	fPrintState fState = fOff;
+	fPrintState fState = fSearchingJ1;
+	injectionState1 injState1 = notActiveInj1;
+	injectionState2 injState2 = notActiveInj2;
 
 	int delayInSamples;
 
