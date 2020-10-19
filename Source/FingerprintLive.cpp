@@ -9,7 +9,7 @@
 */
 
 #include "FingerprintLive.h"
-//#define LOG
+
 //==============================================================================
 FingerprintLive::FingerprintLive() : forwardFFT(fftOrder),
 window(fftSize, juce::dsp::WindowingFunction<float>::hann), m_sampleRate(44100.0), secondsToAnalyze(10)

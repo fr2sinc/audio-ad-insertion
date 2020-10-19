@@ -203,9 +203,11 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 		if (fState == fSearchingJ1) {
 			
 			for (int sample = 0; sample < bufferLength; ++sample) {
-
+#ifdef MatchMapOverlap
 				RecognizedJingle localRJ = fprintLive.getRecognitionWithMatchMapOverlap(bufferData[sample]);
-				
+#else
+				RecognizedJingle localRJ = fprintLive.getRecognitionWithOverlap(bufferData[sample]);
+#endif // MatchMapOverlap			
 				if (localRJ.getRemainingInSamples() > 0) {
 					fState = fRecognizedJ1;
 					injState1 = waitJ1End;
@@ -231,9 +233,11 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 		else if (fState == fSearchingJ2) {
 			
 			for (int sample = 0; sample < bufferLength; ++sample) {
-
+#ifdef MatchMapOverlap
 				RecognizedJingle localRJ = fprintLive.getRecognitionWithMatchMapOverlap(bufferData[sample]);
-				
+#else
+				RecognizedJingle localRJ = fprintLive.getRecognitionWithOverlap(bufferData[sample]);
+#endif // MatchMapOverlap			
 				if (localRJ.getOffsetInSamples() > 0) {
 					fState = fRecognizedJ2;
 					injState2 = waitAdEnd;
@@ -267,12 +271,13 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	const float* bufferData) {
 
 	//calculate FFT only in one channel, if I need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
-	if (channel == 0) {
+	if (channel == 0) {		
 
-		bool fftResult = gAnalyzer.checkGoertzelFrequencies();
-
-		if (fftResult && timeCounter > 150) {
-			newToneState = On;
+		if (timeCounter > 150) { //10ms * 100 in samples
+			bool fftResult = gAnalyzer.checkGoertzelFrequencies();
+			if (fftResult) {
+				newToneState = On;
+			}
 		}
 		else {
 			newToneState = Off;

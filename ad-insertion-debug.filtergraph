@@ -44,10 +44,11 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="13" x="0.6480541455160744" y="0.6554054054054054" DPIAware="0.0">
+  <FILTER uid="13" x="0.6480541455160744" y="0.6554054054054054" DPIAware="0.0"
+          uiLastX_Normal="427" uiLastY_Normal="413" uiopen_Normal="0">
     <PLUGIN name="audio-ad-insertion" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\Builds\VisualStudio2017\x64\Debug\VST3\FFTimpl.vst3"
-            uid="e9596a53" isInstrument="0" fileTime="174f9ef26e6" infoUpdateTime="174f9ef790d"
+            uid="e9596a53" isInstrument="0" fileTime="175308f8e4b" infoUpdateTime="175309253a8"
             numInputs="2" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -59,29 +60,29 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="14" x="0.09983079526226735" y="0.1655405405405405" DPIAware="0.0">
+  <FILTER uid="15" x="0.6395939086294417" y="0.2837837837837838" DPIAware="0.0">
+    <PLUGIN name="simpleSignalGenerator" format="VST3" category="Fx" manufacturer="yourcompany"
+            version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\simpleSignalGenerator\Builds\VisualStudio2017\x64\Debug\VST3\simpleSignalGenerator.vst3"
+            uid="e95c8652" isInstrument="0" fileTime="174d5cf5571" infoUpdateTime="175309253a8"
+            numInputs="2" numOutputs="2" isShell="0"/>
+    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <LAYOUT>
+      <INPUTS>
+        <BUS index="0" layout="L R"/>
+      </INPUTS>
+      <OUTPUTS>
+        <BUS index="0" layout="L R"/>
+      </OUTPUTS>
+    </LAYOUT>
+  </FILTER>
+  <FILTER uid="16" x="0.09813874788494077" y="0.2398648648648649" DPIAware="">
     <PLUGIN name="audioFilePlugin" format="VST3" category="Instrument|Synth"
             manufacturer="yourcompany" version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audioFilePlugin\Builds\VisualStudio2017\x64\Debug\VST3\audioFilePlugin.vst3"
-            uid="e95aec5f" isInstrument="1" fileTime="174691688cf" infoUpdateTime="174f9ef790d"
+            uid="e95aec5f" isInstrument="1" fileTime="17530874a2c" infoUpdateTime="175309253a8"
             numInputs="0" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
       <INPUTS/>
-      <OUTPUTS>
-        <BUS index="0" layout="L R"/>
-      </OUTPUTS>
-    </LAYOUT>
-  </FILTER>
-  <FILTER uid="15" x="0.6395939086294417" y="0.2837837837837838" DPIAware="">
-    <PLUGIN name="simpleSignalGenerator" format="VST3" category="Fx" manufacturer="yourcompany"
-            version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\simpleSignalGenerator\Builds\VisualStudio2017\x64\Debug\VST3\simpleSignalGenerator.vst3"
-            uid="e95c8652" isInstrument="0" fileTime="174d5cf5571" infoUpdateTime="174f9ef790d"
-            numInputs="2" numOutputs="2" isShell="0"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
-    <LAYOUT>
-      <INPUTS>
-        <BUS index="0" layout="L R"/>
-      </INPUTS>
       <OUTPUTS>
         <BUS index="0" layout="L R"/>
       </OUTPUTS>
@@ -92,8 +93,8 @@
   <CONNECTION srcFilter="6" srcChannel="1" dstFilter="13" dstChannel="1"/>
   <CONNECTION srcFilter="13" srcChannel="0" dstFilter="3" dstChannel="0"/>
   <CONNECTION srcFilter="13" srcChannel="1" dstFilter="3" dstChannel="1"/>
-  <CONNECTION srcFilter="14" srcChannel="0" dstFilter="13" dstChannel="0"/>
-  <CONNECTION srcFilter="14" srcChannel="1" dstFilter="13" dstChannel="1"/>
   <CONNECTION srcFilter="15" srcChannel="0" dstFilter="13" dstChannel="0"/>
   <CONNECTION srcFilter="15" srcChannel="1" dstFilter="13" dstChannel="1"/>
+  <CONNECTION srcFilter="16" srcChannel="0" dstFilter="13" dstChannel="0"/>
+  <CONNECTION srcFilter="16" srcChannel="1" dstFilter="13" dstChannel="1"/>
 </FILTERGRAPH>

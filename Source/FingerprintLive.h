@@ -17,6 +17,8 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#define MatchMapOverlap
+//#define LOG
 //==============================================================================
 /*
 */
@@ -29,7 +31,12 @@ public:
 		//più aumenti frameAnalysisAccumulator e più match spuri ci saranno, quindi di conseguenza la threshold deve essere più alta
 		thresholdMatchCons = 5,
 		frameAnalysisAccumulator = 128,
+#ifdef MatchMapOverlap
 		matchMapFrame = 2,
+#else
+		matchMapFrame = 1,
+#endif // MatchMapOverlap			
+		
 	};
 
 	FingerprintLive();
