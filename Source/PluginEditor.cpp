@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-FFTimplAudioProcessorEditor::FFTimplAudioProcessorEditor(FFTimplAudioProcessor& p)
+AdInsertionAudioProcessorEditor::AdInsertionAudioProcessorEditor(AdInsertionAudioProcessor& p)
 	: AudioProcessorEditor(&p), audioProcessor(p)
 {
 	startTimerHz(60);
@@ -42,17 +42,17 @@ FFTimplAudioProcessorEditor::FFTimplAudioProcessorEditor(FFTimplAudioProcessor& 
 	setSize(500, 300);
 }
 
-FFTimplAudioProcessorEditor::~FFTimplAudioProcessorEditor()
+AdInsertionAudioProcessorEditor::~AdInsertionAudioProcessorEditor()
 {
 }
 
 //==============================================================================
-void FFTimplAudioProcessorEditor::paint(juce::Graphics& g)
+void AdInsertionAudioProcessorEditor::paint(juce::Graphics& g)
 {
 	g.fillAll(Colours::black);
 }
 
-void FFTimplAudioProcessorEditor::resized()
+void AdInsertionAudioProcessorEditor::resized()
 {
 	//mDelaySlider.setBounds(getWidth() / 2 - 50, getHeight() / 2 - 75, 100, 150);
 	curJingle1Label.setBounds(10, 80, getWidth() - 20, 40);
@@ -60,14 +60,14 @@ void FFTimplAudioProcessorEditor::resized()
 
 }
 
-void FFTimplAudioProcessorEditor::sliderValueChanged(Slider * slider)
+void AdInsertionAudioProcessorEditor::sliderValueChanged(Slider * slider)
 {
 	//check if the *slider points to a memory location
 	if (slider == &mDelaySlider)
 		audioProcessor.mDelay = mDelaySlider.getValue();
 }
 
-void FFTimplAudioProcessorEditor::timerCallback() {
+void AdInsertionAudioProcessorEditor::timerCallback() {
 	if (audioProcessor.samplesRemainingDelayedJ1 == 0) {
 		curJingle1Label.setText("", juce::dontSendNotification);
 	}

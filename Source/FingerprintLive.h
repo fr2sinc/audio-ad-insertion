@@ -28,7 +28,6 @@ public:
 	enum {
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
-		//più aumenti frameAnalysisAccumulator e più match spuri ci saranno, quindi di conseguenza la threshold deve essere più alta
 		thresholdMatchCons = 5,
 		frameAnalysisAccumulator = 128,
 #ifdef MatchMapOverlap
@@ -45,7 +44,7 @@ public:
 
 	void matchHashes(int currentTime, int endMatchMap, int endMatchMap1);
 
-	void loadHashes(int songId, bool isMatching, juce::String input_file);
+	void loadHashes(int songId, juce::String input_file);
 
 	//std::pair<int, std::string> pushSampleIntoSongMatchFifoOverlap(const float & sample);
 
@@ -55,7 +54,7 @@ public:
 
 	RecognizedJingle getRecognitionWithMatchMapOverlap(const float & sample);
 
-	void setupFingerprintLive(double samplerate, double secToAnalyze);
+	void setupFingerprintLive(double samplerate);
 
 	std::unordered_map<long long, std::list<DataPoint>>& getHashMap();
 
@@ -79,7 +78,6 @@ private:
 	juce::dsp::FFT forwardFFT;
 	juce::dsp::WindowingFunction<float> window;
 	double m_sampleRate;
-	double secondsToAnalyze;
 	std::unordered_map<long long, std::list<DataPoint>> hashMap;	// Map<Hash, List<DataPoint>>
 	std::unordered_map<int, std::unordered_map<int, int>> matchMap; // Map<SongId, Map<Offset, Count>>
 	std::unordered_map<int, std::unordered_map<int, int>> matchMap2; // Map<SongId, Map<Offset, Count>>
@@ -101,7 +99,6 @@ private:
 	int fifoIndex = 0;
 	int increment = 0;
 	bool lastOverlap = false;
-	int nrSongs = 0;
 
 	int windowAnalysisIndex = 0;
 	std::unordered_map<int, std::pair<int, std::string>> jingleMap;	// Map<songId, (lengthInSamples, jingle name)>

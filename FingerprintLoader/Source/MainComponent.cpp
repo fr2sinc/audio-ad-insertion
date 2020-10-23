@@ -27,10 +27,6 @@ void MainComponent::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-    /*g.setFont (juce::Font (16.0f));
-    g.setColour (juce::Colours::white);
-    g.drawText ("Hello World!", getLocalBounds(), juce::Justification::centred, true);*/
 }
 
 void MainComponent::resized()
@@ -46,7 +42,7 @@ void MainComponent::loadButtonClicked() {
 	FingerprintLive fprintLive;
 	//first of all setup fingerprint
 	//set your host samplerate manually
-	fprintLive.setupFingerprintLive(sampleRate, 0.5);
+	fprintLive.setupFingerprintLive(sampleRate);
 
 	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioDatabase");
 	DirectoryIterator dir_iterator(f, false);
@@ -55,7 +51,7 @@ void MainComponent::loadButtonClicked() {
 	while (dir_iterator.next()) {
 
 		auto file = File(dir_iterator.getFile());
-		fprintLive.loadHashes(songId, false, file.getFullPathName());
+		fprintLive.loadHashes(songId, file.getFullPathName());
 		songId++;
 	}
 

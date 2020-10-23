@@ -16,7 +16,7 @@
 //==============================================================================
 /**
 */
-class FFTimplAudioProcessor : public juce::AudioProcessor
+class AdInsertionAudioProcessor : public juce::AudioProcessor
 {
 public:
 	enum ToneState
@@ -47,9 +47,9 @@ public:
 	};
 
 	//==============================================================================
-	FFTimplAudioProcessor();
+	AdInsertionAudioProcessor();
 	void initializeFprint();
-	~FFTimplAudioProcessor() override;
+	~AdInsertionAudioProcessor() override;
 
 	//==============================================================================
 	void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -135,5 +135,5 @@ private:
 	int delayInSamples;
 
 	//==============================================================================
-	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessor)
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AdInsertionAudioProcessor)
 };

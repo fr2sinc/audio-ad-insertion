@@ -12,7 +12,7 @@
 
 //==============================================================================
 FingerprintLive::FingerprintLive() : forwardFFT(fftOrder),
-window(fftSize, juce::dsp::WindowingFunction<float>::hann), m_sampleRate(44100.0), secondsToAnalyze(10)
+window(fftSize, juce::dsp::WindowingFunction<float>::hann), m_sampleRate(44100.0)
 {
 	// In your constructor, you should add any child components, and
 	// initialise any special settings that your component needs.
@@ -123,13 +123,10 @@ void FingerprintLive::matchHashes(int currentTime, int endMatchMap = 0, int endM
 	
 }
 
-void FingerprintLive::loadHashes(int songId, bool isMatching, juce::String input_file = "") {
+void FingerprintLive::loadHashes(int songId, juce::String input_file = "") {
 
 	juce::File file(input_file);
 	juce::String filename = file.getFileName();
-
-	//increment totNumber of Songs
-	nrSongs++;
 
 	auto* reader = formatManager.createReaderFor(file);
 
@@ -453,13 +450,9 @@ void FingerprintLive::writeAudioFileOnDisk(const juce::AudioBuffer<float>& tmpBu
 		writer->writeFromAudioSampleBuffer(tmpBuffer, 0, tmpBuffer.getNumSamples());
 }
 
-void FingerprintLive::setupFingerprintLive(double samplerate, double secToAnalyze) {
+void FingerprintLive::setupFingerprintLive(double samplerate) {
 	m_sampleRate = samplerate;
-	secondsToAnalyze = secToAnalyze;
 	transportSource.prepareToPlay(fftSize, m_sampleRate);
-	//songMatchFifo.setSize(1, (int)(m_sampleRate * secToAnalyze));
-	//songMatchFifo.setSize(1, (int)(512));
-
 }
 
 long long FingerprintLive::hash(long long p1, long long p2, long long p3, long long p4) {

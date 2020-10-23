@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#define Overlap
 //==============================================================================
 /*
 */
@@ -25,6 +26,11 @@ public:
 	enum {
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
+#ifdef Overlap
+		fftSizeIncrement = 256,
+#else
+		fftSizeIncrement = fftSize,
+#endif
 	};
 
 	Fingerprint();
@@ -81,7 +87,7 @@ private:
 	//needed to maintain a buffer state
 	juce::AudioBuffer<float> songMatchFifo;
 	juce::AudioBuffer<float> songMatchFifoCopy;
-	int songMatchFifoIndex = 480;
+	int songMatchFifoIndex = 512;
 	int nrSongs = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Fingerprint)

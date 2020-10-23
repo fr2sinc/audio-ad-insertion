@@ -14,13 +14,13 @@
 //==============================================================================
 /**
 */
-class FFTimplAudioProcessorEditor : public juce::AudioProcessorEditor,
+class AdInsertionAudioProcessorEditor : public juce::AudioProcessorEditor,
 	public Slider::Listener,
 	private juce::Timer
 {
 public:
-	FFTimplAudioProcessorEditor(FFTimplAudioProcessor&);
-	~FFTimplAudioProcessorEditor() override;
+	AdInsertionAudioProcessorEditor(AdInsertionAudioProcessor&);
+	~AdInsertionAudioProcessorEditor() override;
 
 	//==============================================================================
 	void paint(juce::Graphics&) override;
@@ -29,7 +29,7 @@ public:
 private:
 	// This reference is provided as a quick way for your editor to
 	// access the processor object that created it.
-	FFTimplAudioProcessor& audioProcessor;
+	AdInsertionAudioProcessor& audioProcessor;
 
 	Slider mDelaySlider;
 	void sliderValueChanged(Slider* slider) override;
@@ -42,5 +42,5 @@ private:
 	juce::Label curJingle2Label;
 	Label boxLabelJ2;
 
-	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FFTimplAudioProcessorEditor)
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AdInsertionAudioProcessorEditor)
 };

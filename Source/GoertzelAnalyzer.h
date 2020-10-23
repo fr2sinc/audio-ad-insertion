@@ -80,6 +80,7 @@ public:
 	bool checkGoertzelFrequencies() {
 		float threshold = 350.0;
 		if(fqSize == 1){
+			//DBG(fq_levels[0]);
 			if (fq_levels[0] > threshold)
 				return true;
 		}

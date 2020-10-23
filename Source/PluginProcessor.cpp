@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-FFTimplAudioProcessor::FFTimplAudioProcessor()
+AdInsertionAudioProcessor::AdInsertionAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
 	: AudioProcessor(BusesProperties()
 #if ! JucePlugin_IsMidiEffect
@@ -26,29 +26,29 @@ FFTimplAudioProcessor::FFTimplAudioProcessor()
 	initializeFprint();	
 }
 
-void FFTimplAudioProcessor::initializeFprint() {
+void AdInsertionAudioProcessor::initializeFprint() {
 
 	//first of all setup fingerprint
 	//set your host samplerate manually
-	fprintLive.setupFingerprintLive(48000, 0.5);
+	fprintLive.setupFingerprintLive(44100);
 	JsonUtility::readHashMap(fprintLive.getHashMap());
 	JsonUtility::readJingleMap(fprintLive.getJingleMap());
-	fprint.setupFingerprint(48000, 10/*seconds of audio to analyze*/);
+	fprint.setupFingerprint(44100, 10/*seconds of audio to analyze*/);
 	JsonUtility::readHashMap(fprint.getHashMap());
 	JsonUtility::readJingleMap(fprint.getJingleMap());
 }
 
-FFTimplAudioProcessor::~FFTimplAudioProcessor()
+AdInsertionAudioProcessor::~AdInsertionAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String FFTimplAudioProcessor::getName() const
+const juce::String AdInsertionAudioProcessor::getName() const
 {
 	return JucePlugin_Name;
 }
 
-bool FFTimplAudioProcessor::acceptsMidi() const
+bool AdInsertionAudioProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput
 	return true;
@@ -57,7 +57,7 @@ bool FFTimplAudioProcessor::acceptsMidi() const
 #endif
 }
 
-bool FFTimplAudioProcessor::producesMidi() const
+bool AdInsertionAudioProcessor::producesMidi() const
 {
 #if JucePlugin_ProducesMidiOutput
 	return true;
@@ -66,7 +66,7 @@ bool FFTimplAudioProcessor::producesMidi() const
 #endif
 }
 
-bool FFTimplAudioProcessor::isMidiEffect() const
+bool AdInsertionAudioProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
 	return true;
@@ -75,37 +75,37 @@ bool FFTimplAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double FFTimplAudioProcessor::getTailLengthSeconds() const
+double AdInsertionAudioProcessor::getTailLengthSeconds() const
 {
 	return 0.0;
 }
 
-int FFTimplAudioProcessor::getNumPrograms()
+int AdInsertionAudioProcessor::getNumPrograms()
 {
 	return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
 				// so this should be at least 1, even if you're not really implementing programs.
 }
 
-int FFTimplAudioProcessor::getCurrentProgram()
+int AdInsertionAudioProcessor::getCurrentProgram()
 {
 	return 0;
 }
 
-void FFTimplAudioProcessor::setCurrentProgram(int index)
+void AdInsertionAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const juce::String FFTimplAudioProcessor::getProgramName(int index)
+const juce::String AdInsertionAudioProcessor::getProgramName(int index)
 {
 	return {};
 }
 
-void FFTimplAudioProcessor::changeProgramName(int index, const juce::String& newName)
+void AdInsertionAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void AdInsertionAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
 	// Use this method as the place to do any pre-playback
 	const int numInputChannels = getTotalNumInputChannels();
@@ -121,7 +121,7 @@ void FFTimplAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 	delayInSamples = sampleRate * 6; //6sec of fixed delay
 }
 
-void FFTimplAudioProcessor::releaseResources()
+void AdInsertionAudioProcessor::releaseResources()
 {
 	// When playback stops, you can use this as an opportunity to free up any
 	// spare memory, etc.
@@ -129,7 +129,7 @@ void FFTimplAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool FFTimplAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool AdInsertionAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
 	juce::ignoreUnused(layouts);
@@ -152,7 +152,7 @@ bool FFTimplAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) c
 }
 #endif
 
-void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void AdInsertionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 	juce::ScopedNoDenormals noDenormals;
 	auto totalNumInputChannels = getTotalNumInputChannels();
@@ -196,7 +196,7 @@ void FFTimplAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	timeCounter++;
 }
 
-void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
+void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
 	auto* bufferData = buffer.getReadPointer(0);
 	if (channel == 0) {
 
@@ -258,7 +258,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 }
 
 //tester with no trigger
-//void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
+//void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
 //	auto* bufferData = buffer.getReadPointer(0);
 //	if (channel == 0) {
 //		//fingerprint
@@ -268,7 +268,7 @@ void FFTimplAudioProcessor::doFprintAnalysis(int channel, const int bufferLength
 //	}
 //}
 
-void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	const float* bufferData) {
+void AdInsertionAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	const float* bufferData) {
 
 	//calculate FFT only in one channel, if I need to calculate fft on two channel I have to create e mono channel from two channel in a trivial way
 	if (channel == 0) {		
@@ -291,10 +291,9 @@ void FFTimplAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	
 	}
 }
 
-void FFTimplAudioProcessor::changeFprintState(const int bufferLength) {
+void AdInsertionAudioProcessor::changeFprintState(const int bufferLength) {
 
 	if (fState == fRecognizedJ1) {
-		//meglio anticipare che posticipare
 		if (j1SamplesRemaining - bufferLength > 0) {
 			j1SamplesRemaining -= bufferLength;
 		}
@@ -348,7 +347,7 @@ void FFTimplAudioProcessor::changeFprintState(const int bufferLength) {
 
 }
 
-void FFTimplAudioProcessor::changeToneState() {
+void AdInsertionAudioProcessor::changeToneState() {
 
 	if (toneState == On) {
 		if (newToneState == On) {
@@ -360,7 +359,7 @@ void FFTimplAudioProcessor::changeToneState() {
 	else if (toneState = Off) {
 		if (newToneState == On) {
 			toneState = On;
-
+			//change this to read another file for injection
 			File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
 			auto* reader = formatManager.createReaderFor(file);
 
@@ -376,7 +375,7 @@ void FFTimplAudioProcessor::changeToneState() {
 	}
 }
 
-void FFTimplAudioProcessor::fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,
+void AdInsertionAudioProcessor::fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,
 	const float* bufferData, const float* delayBufferData) {
 
 	//copy data from main buffer to delay buffer
@@ -390,7 +389,7 @@ void FFTimplAudioProcessor::fillDelayBuffer(int channel, const int bufferLength,
 	}
 }
 
-void FFTimplAudioProcessor::getFromDelayBuffer(AudioBuffer<float>& buffer, int channel, const int bufferLength,
+void AdInsertionAudioProcessor::getFromDelayBuffer(AudioBuffer<float>& buffer, int channel, const int bufferLength,
 	const int delayBufferLength, const float* bufferData, const float* delayBufferData) {
 
 	//int delayTime = 6000;//mDelay;//ex 500 ms
@@ -408,25 +407,25 @@ void FFTimplAudioProcessor::getFromDelayBuffer(AudioBuffer<float>& buffer, int c
 }
 
 //==============================================================================
-bool FFTimplAudioProcessor::hasEditor() const
+bool AdInsertionAudioProcessor::hasEditor() const
 {
 	return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* FFTimplAudioProcessor::createEditor()
+juce::AudioProcessorEditor* AdInsertionAudioProcessor::createEditor()
 {
-	return new FFTimplAudioProcessorEditor(*this);
+	return new AdInsertionAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void FFTimplAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+void AdInsertionAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
 	// You should use this method to store your parameters in the memory block.
 	// You could do that either as raw data, or use the XML or ValueTree classes
 	// as intermediaries to make it easy to save and load complex data.
 }
 
-void FFTimplAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+void AdInsertionAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
 	// You should use this method to restore your parameters from this memory block,
 	// whose contents will have been created by the getStateInformation() call.
@@ -436,5 +435,5 @@ void FFTimplAudioProcessor::setStateInformation(const void* data, int sizeInByte
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-	return new FFTimplAudioProcessor();
+	return new AdInsertionAudioProcessor();
 }

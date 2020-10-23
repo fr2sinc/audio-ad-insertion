@@ -29,12 +29,13 @@ void Fingerprint::matchHashes() {
 	int mread = 0;
 
 	//t = timeframe counter
-	for (int t = 0; t < songMatchFifoCopy.getNumSamples() / fftSize; t++) {
-
+	int windowIndex = 0;
+	for (int t = 0; t < (songMatchFifoCopy.getNumSamples() / fftSizeIncrement) - 1; t++) {
+		
 		memcpy(outBuffer.data(), songMatchFifoCopy.getReadPointer(0, mread), fftSize * sizeof(float));
 		//writeWaveFormOnDisk(t, 987, fftSize, outBuffer.data());
 
-		mread += fftSize;
+		mread += fftSizeIncrement;		
 
 		window.multiplyWithWindowingTable(outBuffer.data(), fftSize);
 		forwardFFT.performFrequencyOnlyForwardTransform(outBuffer.data()); //FFT computation
@@ -76,7 +77,7 @@ void Fingerprint::matchHashes() {
 
 				for (DataPoint dP : listPoints) {
 
-					int offset = std::abs(dP.getTime() - t);
+					int offset = std::abs(dP.getTime() - windowIndex);
 
 					if ((matchMap.find(dP.getSongId())) == matchMap.end()) { //se è il primo match di hash di una canzone nuova
 						std::unordered_map<int, int> tmpMap;
@@ -101,7 +102,15 @@ void Fingerprint::matchHashes() {
 				}
 			}
 		}
+#ifdef Overlap
+		if (t % 2 == 1) {
+			windowIndex++;
+		}
+#else
+		windowIndex++;
+#endif // 
 
+		
 	}
 }
 
@@ -266,13 +275,14 @@ void Fingerprint::pushSampleIntoSongMatchFifo(const juce::AudioBuffer<float>& tm
 	songMatchFifoIndex += bufferLength;
 }
 
+
 int Fingerprint::calculateBestMatch() {
 
 	std::list<DataPoint> listPoints;
 	int bestCount = 0;
 	int bestSong = -1;
 
-	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\debugMatch.txt");
+	File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\logLevel0BufferingFrame\\debugMatch.txt");
 	if (f.exists()) {
 		f.deleteFile();
 		//f.replaceWithText("");//clear
