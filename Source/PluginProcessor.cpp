@@ -215,20 +215,28 @@ void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLe
 				if (localRJ.getRemainingInSamples() > 0) {
 					fState = fRecognizedJ1;
 					injState1 = waitJ1End;
-					
+
 					samplesRemainingDelayedJ1 = delayInSamples + localRJ.getRemainingInSamples() - (bufferLength - sample);
 					j1SamplesRemaining = localRJ.getRemainingInSamples() - (bufferLength - sample);
 					curJingle1 = localRJ.getTitle();
 
-					File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
-					auto* reader = formatManager.createReaderFor(file);
+					//load random audio files from audioInjection directory
+					File dir = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection");
+					Array<File> injFiles = dir.findChildFiles(2, ".mp3; .wav");
 
-					if (reader != nullptr) {
-						std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
-						transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
-						readerSource.reset(newSource.release());
+					if (injFiles.size() != 0) {
+
+						Random rand = Random();
+						int x = rand.nextInt(Range<int>(0, injFiles.size() - 1));
+						File file = injFiles[x];
+						auto* reader = formatManager.createReaderFor(file);
+						if (reader != nullptr) {
+							std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
+							transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+							readerSource.reset(newSource.release());
+						}
+						transportSource.start();
 					}
-					transportSource.start();
 					break;
 				}
 
@@ -246,6 +254,7 @@ void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLe
 
 					samplesAdRemaining = 3 * mSampleRate;
 					samplesAdDuration = samplesAdCounter;
+
 					j2SamplesRemaining = 3 * mSampleRate;					
 					curJingle2 = "TimeOut";					
 					samplesRemainingDelayedJ2 = samplesAdRemaining;
