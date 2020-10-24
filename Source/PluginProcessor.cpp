@@ -187,6 +187,10 @@ void AdInsertionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, j
 	if (toneState == On /*&& channel == 0*/) {
 		//injection
 		transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
+		//fade out of Ad Injected (if Ad has a duration longer than 15 s)
+		if (samplesAdRemaining > 0 && (samplesAdDuration/mSampleRate) > 15) {			
+			buffer.applyGain(smoothed.getNextValue());
+		}
 		//fprint offline
 		//fprint.pushSampleIntoSongMatchFifo(buffer, bufferLength);
 	}
@@ -233,6 +237,27 @@ void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLe
 		else if (fState == fSearchingJ2) {
 			
 			for (int sample = 0; sample < bufferLength; ++sample) {
+
+				samplesAdCounter++;
+				//stop looking for j2 if it's been more than 3 minutes
+				if ((samplesAdCounter / mSampleRate) > 180) {
+					fState = fRecognizedJ2;
+					injState2 = waitAdEnd;
+
+					samplesAdRemaining = 3 * mSampleRate;
+					samplesAdDuration = samplesAdCounter;
+					j2SamplesRemaining = 3 * mSampleRate;					
+					curJingle2 = "TimeOut";					
+					samplesRemainingDelayedJ2 = samplesAdRemaining;
+
+					//fade out setup
+					smoothed.setCurrentAndTargetValue(1.0);
+					smoothed.reset(samplesAdRemaining / bufferLength);
+					smoothed.setTargetValue(0.0);
+					samplesAdCounter = 0;
+					break;
+				}
+
 #ifdef MatchMapOverlap
 				RecognizedJingle localRJ = fprintLive.getRecognitionWithMatchMapOverlap(bufferData[sample]);
 #else
@@ -241,13 +266,21 @@ void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLe
 				if (localRJ.getOffsetInSamples() > 0) {
 					fState = fRecognizedJ2;
 					injState2 = waitAdEnd;
+										
+					samplesAdRemaining = delayInSamples - localRJ.getOffsetInSamples();					
+					samplesAdDuration = samplesAdCounter + samplesAdRemaining;
 
-					samplesAdRemaining = delayInSamples - localRJ.getOffsetInSamples();
+					//fade out setup
+					smoothed.setCurrentAndTargetValue(1.0);					
+					smoothed.reset(samplesAdRemaining / bufferLength);
+					smoothed.setTargetValue(0.0);
+
 					second_jingle_duration = localRJ.getDurationInSamples();
 					samplesRemainingDelayedJ2 = samplesAdRemaining + second_jingle_duration;
 					j2SamplesRemaining = localRJ.getRemainingInSamples() - (bufferLength - sample);
 
-					curJingle2 = localRJ.getTitle();	
+					curJingle2 = localRJ.getTitle();
+					samplesAdCounter = 0;
 					break;
 				}
 
@@ -307,7 +340,7 @@ void AdInsertionAudioProcessor::changeFprintState(const int bufferLength) {
 			j2SamplesRemaining -= bufferLength;			
 		}
 		else { 		
-			fState = fSearchingJ1;			
+			fState = fSearchingJ1;	
 		}
 	}
 		
@@ -328,7 +361,8 @@ void AdInsertionAudioProcessor::changeFprintState(const int bufferLength) {
 			samplesRemainingDelayedJ2 -= bufferLength;
 		}
 		else {
-			toneState = Off;
+			toneState = Off;		
+			samplesAdDuration = 0;
 			samplesAdRemaining = 0;
 			injState2 = waitJ2;
 		}

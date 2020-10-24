@@ -108,6 +108,8 @@ public:
 	int j2SamplesRemaining = 0;
 
 	int samplesAdRemaining = 0;
+	int samplesAdCounter = 0;
+	int samplesAdDuration = 0;
 	int second_jingle_duration = 0;
 	int mSampleRate{ 0 };
 
@@ -133,7 +135,7 @@ private:
 	injectionState2 injState2 = notActiveInj2;
 
 	int delayInSamples;
-
+	SmoothedValue<float, ValueSmoothingTypes::Linear> smoothed;
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AdInsertionAudioProcessor)
 };

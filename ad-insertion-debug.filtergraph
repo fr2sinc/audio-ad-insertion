@@ -31,7 +31,7 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="6" x="0.299492385786802" y="0.3490813648293963" DPIAware="0.0">
+  <FILTER uid="6" x="0.3570219966159052" y="0.2939189189189189" DPIAware="0.0">
     <PLUGIN name="Sine Wave Synth" format="Internal" category="Synth" manufacturer="JUCE"
             version="1.0.0" file="Sine Wave Synth" uid="16fd76a8" isInstrument="1"
             fileTime="0" infoUpdateTime="0" numInputs="0" numOutputs="2"
@@ -44,11 +44,11 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="13" x="0.6480541455160744" y="0.6554054054054054" DPIAware="0.0"
+  <FILTER uid="13" x="0.5025380710659898" y="0.6621621621621622" DPIAware="0.0"
           uiLastX_Normal="427" uiLastY_Normal="413" uiopen_Normal="0">
     <PLUGIN name="audio-ad-insertion" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\Builds\VisualStudio2017\x64\Debug\VST3\FFTimpl.vst3"
-            uid="e9596a53" isInstrument="0" fileTime="175308f8e4b" infoUpdateTime="175309253a8"
+            uid="e9596a53" isInstrument="0" fileTime="175576ba0d8" infoUpdateTime="17557851541"
             numInputs="2" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -60,10 +60,10 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="15" x="0.6395939086294417" y="0.2837837837837838" DPIAware="0.0">
+  <FILTER uid="15" x="0.6480541455160744" y="0.2972972972972973" DPIAware="0.0">
     <PLUGIN name="simpleSignalGenerator" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\simpleSignalGenerator\Builds\VisualStudio2017\x64\Debug\VST3\simpleSignalGenerator.vst3"
-            uid="e95c8652" isInstrument="0" fileTime="174d5cf5571" infoUpdateTime="175309253a8"
+            uid="e95c8652" isInstrument="0" fileTime="174d5cf5571" infoUpdateTime="17557851541"
             numInputs="2" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -75,10 +75,10 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="16" x="0.09813874788494077" y="0.2398648648648649" DPIAware="">
+  <FILTER uid="16" x="0.1302876480541455" y="0.2939189189189189" DPIAware="">
     <PLUGIN name="audioFilePlugin" format="VST3" category="Instrument|Synth"
-            manufacturer="yourcompany" version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audioFilePlugin\Builds\VisualStudio2017\x64\Debug\VST3\audioFilePlugin.vst3"
-            uid="e95aec5f" isInstrument="1" fileTime="17530874a2c" infoUpdateTime="175309253a8"
+            manufacturer="yourcompany" version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\audioFilePlugin\Builds\VisualStudio2017\x64\Debug\VST3\audioFilePlugin.vst3"
+            uid="e95aec5f" isInstrument="1" fileTime="175318891ae" infoUpdateTime="17557851542"
             numInputs="0" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
