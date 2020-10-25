@@ -219,24 +219,7 @@ void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLe
 					samplesRemainingDelayedJ1 = delayInSamples + localRJ.getRemainingInSamples() - (bufferLength - sample);
 					j1SamplesRemaining = localRJ.getRemainingInSamples() - (bufferLength - sample);
 					curJingle1 = localRJ.getTitle();
-
-					//load random audio files from audioInjection directory
-					File dir = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection");
-					Array<File> injFiles = dir.findChildFiles(2, ".mp3; .wav");
-
-					if (injFiles.size() != 0) {
-
-						Random rand = Random();
-						int x = rand.nextInt(Range<int>(0, injFiles.size() - 1));
-						File file = injFiles[x];
-						auto* reader = formatManager.createReaderFor(file);
-						if (reader != nullptr) {
-							std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
-							transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
-							readerSource.reset(newSource.release());
-						}
-						transportSource.start();
-					}
+					loadInjectionFile();
 					break;
 				}
 
@@ -401,21 +384,33 @@ void AdInsertionAudioProcessor::changeToneState() {
 	}
 	else if (toneState = Off) {
 		if (newToneState == On) {
-			toneState = On;
-			//change this to read another file for injection
-			File file = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection\\1.mp3");
-			auto* reader = formatManager.createReaderFor(file);
-
-			if (reader != nullptr) {
-				std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
-				transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
-				readerSource.reset(newSource.release());
-			}			
-			transportSource.start();
-			
+			toneState = On;			
+			loadInjectionFile();
 			timeCounter = 0;
 		}
 	}
+}
+
+void AdInsertionAudioProcessor::loadInjectionFile() {
+
+	//load random audio files from audioInjection directory
+	File dir = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("audio-ad-insertion-data\\audioInjection");
+	Array<File> injFiles = dir.findChildFiles(2, ".mp3; .wav");
+
+	if (injFiles.size() != 0) {
+
+		Random rand = Random();
+		int x = rand.nextInt(Range<int>(0, injFiles.size() - 1));
+		File file = injFiles[x];
+		auto* reader = formatManager.createReaderFor(file);
+		if (reader != nullptr) {
+			std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
+			transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+			readerSource.reset(newSource.release());
+		}
+		transportSource.start();
+	}
+
 }
 
 void AdInsertionAudioProcessor::fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,

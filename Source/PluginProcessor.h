@@ -69,6 +69,8 @@ public:
 
 	void changeToneState();
 
+	void loadInjectionFile();
+
 	void fillDelayBuffer(int channel, const int bufferLength, const int delayBufferLength,
 		const float* bufferData, const float* delayBufferData);
 
