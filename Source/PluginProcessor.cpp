@@ -166,15 +166,16 @@ void AdInsertionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, j
 	const int delayBufferLength = mDelayBuffer.getNumSamples();
 
 	//changeToneState();
-	changeFprintState(bufferLength);	
+	changeFprintState(bufferLength);
 
-	//doToneAnalysis(0, bufferLength, bufferData);
-	doFprintAnalysis(0, bufferLength, buffer);
 
 	for (int channel = 0; channel < totalNumInputChannels; ++channel) {
 
 		const float* bufferData = buffer.getReadPointer(channel);
 		const float* delayBufferData = mDelayBuffer.getReadPointer(channel);
+
+		//doToneAnalysis(channel, bufferLength, bufferData);
+		doFprintAnalysis(channel, bufferLength, buffer);
 
 		//delay actions
 		fillDelayBuffer(channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
@@ -378,7 +379,6 @@ void AdInsertionAudioProcessor::changeToneState() {
 	if (toneState == On) {
 		if (newToneState == On) {
 			toneState = Off;
-			transportSource.stop();
 			timeCounter = 0;
 		}
 	}
