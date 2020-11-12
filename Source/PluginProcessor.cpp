@@ -165,16 +165,16 @@ void AdInsertionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, j
 	const int bufferLength = buffer.getNumSamples();
 	const int delayBufferLength = mDelayBuffer.getNumSamples();
 
-	changeToneState();
+	//changeToneState();
 	changeFprintState(bufferLength);	
+
+	//doToneAnalysis(0, bufferLength, bufferData);
+	doFprintAnalysis(0, bufferLength, buffer);
 
 	for (int channel = 0; channel < totalNumInputChannels; ++channel) {
 
 		const float* bufferData = buffer.getReadPointer(channel);
 		const float* delayBufferData = mDelayBuffer.getReadPointer(channel);
-		
-		doToneAnalysis(channel, bufferLength, bufferData);
-		doFprintAnalysis(channel, bufferLength, buffer);			
 
 		//delay actions
 		fillDelayBuffer(channel, bufferLength, delayBufferLength, bufferData, delayBufferData);
@@ -283,15 +283,15 @@ void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLe
 }
 
 //tester with no trigger
-//void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
-//	auto* bufferData = buffer.getReadPointer(0);
-//	if (channel == 0) {
-//		//fingerprint
-//		for (int sample = 0; sample < bufferLength; ++sample) {			
-//				fprintLive.getRecognitionWithOverlap(bufferData[sample]);
-//		}
-//	}
-//}
+/*void AdInsertionAudioProcessor::doFprintAnalysis(int channel, const int bufferLength, juce::AudioBuffer<float> buffer) {
+	auto* bufferData = buffer.getReadPointer(0);
+	if (channel == 0) {
+		//fingerprint
+		for (int sample = 0; sample < bufferLength; ++sample) {			
+				fprintLive.getRecognitionWithOverlap(bufferData[sample]);
+		}
+	}
+}*/
 
 void AdInsertionAudioProcessor::doToneAnalysis(int channel, const int bufferLength,	const float* bufferData) {
 

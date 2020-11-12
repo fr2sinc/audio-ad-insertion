@@ -48,7 +48,7 @@
           uiLastX_Normal="427" uiLastY_Normal="413" uiopen_Normal="0">
     <PLUGIN name="audio-ad-insertion" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\Builds\VisualStudio2017\x64\Debug\VST3\FFTimpl.vst3"
-            uid="e9596a53" isInstrument="0" fileTime="175576ba0d8" infoUpdateTime="17557851541"
+            uid="e9596a53" isInstrument="0" fileTime="1757e4ead3a" infoUpdateTime="1757e4f1a91"
             numInputs="2" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -63,7 +63,7 @@
   <FILTER uid="15" x="0.6480541455160744" y="0.2972972972972973" DPIAware="0.0">
     <PLUGIN name="simpleSignalGenerator" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\simpleSignalGenerator\Builds\VisualStudio2017\x64\Debug\VST3\simpleSignalGenerator.vst3"
-            uid="e95c8652" isInstrument="0" fileTime="174d5cf5571" infoUpdateTime="17557851541"
+            uid="e95c8652" isInstrument="0" fileTime="174d5cf5571" infoUpdateTime="1757e4f1a92"
             numInputs="2" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -75,14 +75,29 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="16" x="0.1302876480541455" y="0.2939189189189189" DPIAware="">
+  <FILTER uid="16" x="0.1302876480541455" y="0.2939189189189189" DPIAware="0.0">
     <PLUGIN name="audioFilePlugin" format="VST3" category="Instrument|Synth"
             manufacturer="yourcompany" version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\audioFilePlugin\Builds\VisualStudio2017\x64\Debug\VST3\audioFilePlugin.vst3"
-            uid="e95aec5f" isInstrument="1" fileTime="175318891ae" infoUpdateTime="17557851542"
+            uid="e95aec5f" isInstrument="1" fileTime="175318891ae" infoUpdateTime="1757e4f1a92"
             numInputs="0" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
       <INPUTS/>
+      <OUTPUTS>
+        <BUS index="0" layout="L R"/>
+      </OUTPUTS>
+    </LAYOUT>
+  </FILTER>
+  <FILTER uid="17" x="0.9120135363790186" y="0.2939189189189189" DPIAware="">
+    <PLUGIN name="simpleSignalGenerator" format="VST3" category="Fx" manufacturer="yourcompany"
+            version="1.0.0" file="C:\Users\Throw\Documents\JuceProjects\audio-ad-insertion\simpleSignalGenerator\Builds\VisualStudio2017\x64\Debug\VST3\simpleSignalGenerator.vst3"
+            uid="e95c8652" isInstrument="0" fileTime="174d5cf5571" infoUpdateTime="1757e4f1a92"
+            numInputs="2" numOutputs="2" isShell="0"/>
+    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <LAYOUT>
+      <INPUTS>
+        <BUS index="0" layout="L R"/>
+      </INPUTS>
       <OUTPUTS>
         <BUS index="0" layout="L R"/>
       </OUTPUTS>
@@ -97,4 +112,6 @@
   <CONNECTION srcFilter="15" srcChannel="1" dstFilter="13" dstChannel="1"/>
   <CONNECTION srcFilter="16" srcChannel="0" dstFilter="13" dstChannel="0"/>
   <CONNECTION srcFilter="16" srcChannel="1" dstFilter="13" dstChannel="1"/>
+  <CONNECTION srcFilter="17" srcChannel="0" dstFilter="13" dstChannel="0"/>
+  <CONNECTION srcFilter="17" srcChannel="1" dstFilter="13" dstChannel="1"/>
 </FILTERGRAPH>

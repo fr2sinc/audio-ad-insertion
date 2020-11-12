@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 #include <math.h>
 #include <cmath>
+//#define LOG
 //==============================================================================
 /*
 */
@@ -23,6 +24,9 @@ class GoertzelAnalyzer
 public:
 	GoertzelAnalyzer(): forwardFFT(fftOrder),
 		window(GoertzelSize, juce::dsp::WindowingFunction<float>::hann) {
+#ifdef LOG
+		sstm << "audio-ad-insertion-data\\goertzelResults\\levels.txt";
+#endif // LOG
     }
 
     ~GoertzelAnalyzer() {
@@ -68,7 +72,7 @@ public:
 		float imag = (q2 * sine) / (size / 2.0);
 
 		float out = sqrt(real * real + imag * imag);
-		return out * 1000;
+		return out * 100;
 	}
 
 	void detectGoertzelFrequencies(int size, float const *data) {
@@ -78,16 +82,49 @@ public:
 	}
 
 	bool checkGoertzelFrequencies() {
-		float threshold = 350.0;
-		if(fqSize == 1){
-			//DBG(fq_levels[0]);
+		float threshold = 35.0;
+		if(fqSize == 1) {
+			DBG(fq_levels[0]);
+
+#ifdef LOG
+			if (fq_levels[0] != memoryResult) {
+				DBG(fq_levels[0]);			
+				File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(sstm.str());
+				f.create();
+				if (memoryResult == -1) {
+					f.replaceWithText("");
+				}
+
+				std::ostringstream oss;
+				oss <<  fq_levels[0] << std::endl;
+				std::string var = oss.str();
+				f.appendText(oss.str());
+			}			
+			memoryResult = fq_levels[0];
+#endif // LOG	
 			if (fq_levels[0] > threshold)
 				return true;
 		}
 		//find simultaneous presence of two frequencies in one tone
-		for (int i = 0; i < fqSize/2 + 1; i++) {			
-			if (fq_levels[i] > threshold && fq_levels[i + fqSize/2] > threshold)//threshold of activation
+		for (int i = 0; i < fqSize/2; i++) {	
+#ifdef LOG			
+			DBG(fq_levels[i] + fq_levels[i + fqSize / 2]);
+			File f = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile(sstm.str());
+			f.create();
+			if (memoryResult == -1) {
+				f.replaceWithText("");
+				memoryResult = 1;
+			}
+
+			std::ostringstream oss;
+			oss << fq_levels[i] << ", " << fq_levels[i + fqSize / 2] << std::endl;
+			std::string var = oss.str();
+			f.appendText(oss.str());
+			
+#endif // LOG
+			if (fq_levels[i] > threshold && fq_levels[i + fqSize / 2] > threshold) {//threshold of activation
 				return true;
+			}
 		}		
 		return false;
 	}
@@ -147,9 +184,8 @@ public:
 		//FFT
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
-
 		//Goertzel
-		//fqSize può essere 1 o un numero pari, se è un numero dispari, l'ultima frequenza non è considerata
+		//fqSize can be 1 or an even number, if it is an odd number, the last frequency is not considered
 		fqSize = 1,
 		GoertzelOrder = 12,
 		GoertzelSize = 1 << GoertzelOrder,
@@ -163,16 +199,18 @@ private:
 	int fifoIndex = 0;   
 
 	double m_sampleRate = 44100.0;
-	//48000 / 2048 (2^11) = bins da 23.43 HZ
-	//48000 / 4096 (2^12) = bins da 11.71 HZ
-	//quindi goertzel settato sul riconoscimento di 16HZ, riconoscerà nell'intorno di +/- 5.85
+	//48000 / 2048 (2^11) = binRange 23.43 HZ
+	//48000 / 4096 (2^12) = binRange da 11.71 HZ	
 
 	const float  PI2 = M_PI * 2;	
 	//DTMF
 	/*697, 770, 852, 941, 1209, 1336, 1477, 1633*/
-	const int fq[fqSize] = {16};
+	const int fq[fqSize] = { 16 };
 	float fq_levels[fqSize] = {};
-
+#ifdef LOG
+	float memoryResult = -1;
+	std::stringstream sstm;
+#endif // LOG	
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GoertzelAnalyzer)
 };
 
