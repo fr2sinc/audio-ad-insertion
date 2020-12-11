@@ -18,7 +18,7 @@
 #include <fstream>
 #include <thread>
 #define MatchMapOverlap
-//#define LOG
+#define LOG
 //==============================================================================
 /*
 */
@@ -28,7 +28,7 @@ public:
 	enum {
 		fftOrder = 9,
 		fftSize = 1 << fftOrder,
-		thresholdMatchCons = 5,
+		thresholdMatchCons = 22,
 		frameAnalysisAccumulator = 128,
 #ifdef MatchMapOverlap
 		matchMapFrame = 2,
@@ -83,10 +83,11 @@ private:
 	std::unordered_map<int, std::unordered_map<int, int>> matchMap2; // Map<SongId, Map<Offset, Count>>
 
 	//analysis bands
-	int freqbandWidth = 40;
-	int freqbandWidth2 = 80;
-	int freqbandWidth3 = 120;
-	int freqbandWidth4 = 180;
+	//four bands whose width doubles each time
+	int freqbandWidth = 0;
+	int freqbandWidth2 = 18;
+	int freqbandWidth3 = 52;
+	int freqbandWidth4 = 120;
 	int freqbandWidth5 = 256;
 
 	//needed to read files

@@ -168,7 +168,6 @@ void AdInsertionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, j
 	//changeToneState();
 	changeFprintState(bufferLength);
 
-
 	for (int channel = 0; channel < totalNumInputChannels; ++channel) {
 
 		const float* bufferData = buffer.getReadPointer(channel);
