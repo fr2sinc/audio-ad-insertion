@@ -18,7 +18,7 @@
 #include <fstream>
 #include <thread>
 #define MatchMapOverlap
-#define LOG
+//#define LOG
 //==============================================================================
 /*
 */
